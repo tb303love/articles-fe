@@ -1,0 +1,71 @@
+<div class="confirm-container">
+  <!-- HEADER -->
+  <header class="dialog-header">
+    <div class="header-content">
+      <div class="icon-badge">
+        <mat-icon>analytics</mat-icon>
+      </div>
+      <div class="title-text">
+        <h2>Rezultat analize</h2>
+        <p>{{ data.fileName }}</p>
+      </div>
+    </div>
+  </header>
+
+  <mat-dialog-content class="modern-content">
+    <p class="section-label">Pregled promena u bazi:</p>
+
+    <!-- STATS CARDS -->
+    <div class="stats-row">
+      <div class="stat-card new">
+        <div class="card-inner">
+          <mat-icon>add_circle_outline</mat-icon>
+          <div class="data">
+            <span class="value">{{ data.stats.new }}</span>
+            <span class="desc">Novi artikli</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card update">
+        <div class="card-inner">
+          <mat-icon>published_with_changes</mat-icon>
+          <div class="data">
+            <span class="value">{{ data.stats.update }}</span>
+            <span class="desc">Ažuriranje</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUMMARY SECTION -->
+    <div class="info-box success">
+      <mat-icon>check_circle</mat-icon>
+      <div class="info-text">
+        Spremno za uvoz: <strong>{{ data.stats.valid }}</strong> artikala
+      </div>
+    </div>
+
+    <!-- WARNING SECTION -->
+    @if (data.stats.totalInFile > data.stats.valid) {
+      <div class="info-box warning">
+        <mat-icon>report_problem</mat-icon>
+        <div class="info-text">
+          Pronađeno <strong>{{ data.stats.totalInFile - data.stats.valid }}</strong> 
+          neispravnih redova koji će biti preskočeni.
+        </div>
+      </div>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close(false)" class="cancel-btn">ODUSTANI</button>
+    <button mat-flat-button 
+            color="primary" 
+            (click)="dialogRef.close(true)" 
+            class="import-btn">
+      <mat-icon>cloud_upload</mat-icon>
+      POKRENI UVOZ
+    </button>
+  </mat-dialog-actions>
+</div>

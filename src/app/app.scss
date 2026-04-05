@@ -1,0 +1,14 @@
+.inline-list {
+  display: flex;
+  flex-direction: row;
+}
+
+.inline-list a {
+  margin-right: 10px;
+}
+
+.inline-list a.active-link {
+  /* Customize the background color, text color, etc. for the active item */
+  background-color: #f0f0f0; 
+  font-weight: bold;
+}

@@ -1,0 +1,176 @@
+// --- 1. STRUKTURA I KONTEJNERI ---
+$header-actions-height: 76px;
+.theme-wrapper {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f4f6f8;
+  overflow: hidden;
+}
+
+.table-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  height: var(--header-actions-height);
+  flex-shrink: 0;
+}
+
+.table-container {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  flex: 1;
+  overflow-x: auto; // HORIZONTALNI SKROL JE OVDE (Pomera i Header i Body zajedno)
+  overflow-y: hidden;
+}
+
+// --- 2. GRID LOGIKA (Hirurški precizno poravnanje) ---
+.grid-row {
+  display: grid;
+  /* FIKSNE ŠIRINE: Ukupno 1100px + dinamičke kolone */
+  /* Naziv(350) + Tip(120) + Zaliha(100) + Admission(Var) + Cena(250) */
+  grid-template-columns: repeat(4, 1fr);
+  align-items: center;
+  padding: 0; 
+  min-width: 1100px; 
+  width: 100%;
+  
+  &.show-addmission-prices {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.grid-header {
+  height: 56px;
+  background: #f8f9fa;
+  border-bottom: 2px solid #eee;
+  font-weight: 600;
+  color: #444;
+  /* REZERVIŠE PROSTOR ZA SKROL BAR DA SE PORAVNA SA TELOM */
+  scrollbar-gutter: stable; 
+  overflow-y: scroll; 
+  
+  // Sakrivamo vizuelno skrol bar u headeru ali čuvamo njegov prostor
+  &::-webkit-scrollbar { width: 8px; background: transparent; }
+  
+  .grid-cell {
+    border-bottom: none;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+  }
+}
+
+.truncate-text {
+  display: block;      // Span postaje block da bi radio ellipsis
+  width: 100%;         // Zauzima svu širinu ćelije
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; 
+}
+
+.article-viewport {
+  height: calc(100vh - 210px); // Prilagodi tačno svom ekranu
+  width: 100%;
+  outline: none;
+  overflow-y: auto;
+  overflow-x: hidden; // Isključeno ovde da ne pravi dupli skrol
+  scrollbar-gutter: stable; // Čuva prostor za skrol bar uvek
+  
+  &::-webkit-scrollbar { width: 8px; }
+  &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+}
+
+.grid-cell {
+  padding: 0 16px; 
+  height: 100%;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  
+  /* Stil za Admission kolone (sakrivanje sadržaja kad je širina 0) */
+  &.admission-cell, &.admission-header {
+    background-color: rgba(0, 0, 0, 0.015);
+    border-left: 1px solid #f0f0f0;
+  }
+}
+
+// --- 3. STILIZACIJA REDOVA ---
+.article-viewport .grid-row {
+  height: 76px; // IDENTIČNO itemSize-u
+  border-bottom: 1px solid #f0f0f0;
+  
+  &:hover {
+    background-color: #f9f9f9;
+    .icon-buttons { visibility: visible; opacity: 1; }
+  }
+}
+
+// --- 4. CENA I AKCIJE (POS IZGLED) ---
+.action-cell {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+
+  .price-amount {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #2e7d32;
+  }
+
+  .price-currency {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #999;
+  }
+
+  .icon-buttons {
+    display: flex;
+    gap: 4px;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+}
+
+// --- 5. OSTALI ELEMENTI (Tagovi, Slike) ---
+.category-tag {
+  background: #f1f3f4;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.low-stock {
+  color: #d32f2f;
+  background: #fdecea;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.hover-preview-img {
+  max-width: 280px;
+  max-height: 280px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: white;
+  padding: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  border: 3px solid #fff;
+}
+
+.header-controls {
+  display: flex;
+  gap: 16px;
+
+}

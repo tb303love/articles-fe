@@ -1,0 +1,90 @@
+<div class="explorer-container" [class.is-locked]="isProcessing()">
+  <header class="dialog-header">
+    <div class="title-section">
+      <div class="icon-circle"><mat-icon>folder_open</mat-icon></div>
+      <div class="title-text">
+        <h1>{{ data.title }}</h1>
+        <p>{{ data.subtitle }}</p>
+      </div>
+    </div>
+    <button mat-icon-button mat-dialog-close class="close-btn"><mat-icon>close</mat-icon></button>
+  </header>
+
+  @if (fs.isLoading()) {
+    <mat-progress-bar mode="indeterminate" color="accent"></mat-progress-bar>
+  } @else {
+    <div class="loader-spacer"></div>
+  }
+
+  <mat-dialog-content class="custom-content">
+    @if (isProcessing()) {
+      <div class="processing-overlay">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Obrada podataka u toku...</p>
+      </div>
+    }
+    <div class="browser-toolbar">
+      <div class="path-display">
+        @if (fs.canGoBack()) {
+          <button mat-icon-button (click)="fs.goBack()" class="back-btn"><mat-icon>arrow_back</mat-icon></button>
+        } @else {
+          <mat-icon class="root-icon">folder_shared</mat-icon>
+        }
+        <div class="breadcrumb-trail">
+          @for (name of fs.breadcrumbs(); track $index) {
+            <span class="breadcrumb-node" [class.active]="$last" (click)="fs.navigateToLevel($index)">{{ name }}</span>
+            @if (!$last) { <mat-icon class="separator">chevron_right</mat-icon> }
+          }
+        </div>
+      </div>
+
+      <div class="action-group">
+        <button mat-stroked-button (click)="fs.openDirectory()" class="action-btn">
+          <mat-icon>home_work</mat-icon> ROOT
+        </button>
+      </div>
+    </div>
+
+    <div class="list-container">
+      <mat-nav-list class="file-grid">
+        @for (item of fs.currentFiles(); track item.name) {
+          @let handler = getHandler(item.name);
+          @let isDir = item.kind === 'directory';
+
+          <mat-list-item (click)="onFileClick(item)" class="file-card" 
+            [class.directory-item]="isDir" 
+            [class.disabled]="!isDir && !handler">
+            
+            <div class="item-layout">
+              <div class="icon-wrapper" 
+                [style.color]="isDir ? '#f57c00' : (handler?.color || '#999')"
+                [style.background-color]="isDir ? '#fff3e0' : (handler?.color ? handler?.color + '15' : '#f5f5f5')">
+                <mat-icon>{{ isDir ? 'folder' : (handler?.icon || 'description') }}</mat-icon>
+              </div>
+
+              <div class="info-wrapper">
+                <span class="name">{{ item.name }}</span>
+                <span class="meta">{{ isDir ? 'Folder' : (handler?.label || 'Nepodržan format') }}</span>
+              </div>
+
+              @if (isDir || handler) {
+                <div class="status-tag" [style.background-color]="isDir ? '#f57c00' : (handler?.color || '#757575')">
+                  {{ isDir ? 'OTVORI' : 'IZABERI' }}
+                </div>
+              }
+            </div>
+          </mat-list-item>
+        } @empty {
+          <div class="empty-state">
+            <mat-icon>folder_off</mat-icon>
+            <p>Folder je prazan ili nema podržanih fajlova</p>
+          </div>
+        }
+      </mat-nav-list>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close class="cancel-btn">ZATVORI</button>
+  </mat-dialog-actions>
+</div>

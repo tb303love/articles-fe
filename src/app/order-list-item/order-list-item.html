@@ -1,0 +1,90 @@
+<mat-card class="order-card" [class.is-fully-stornirano]="isFullyRefunded()">
+  <mat-card-header>
+    <mat-card-title class="order-header-row">
+      <div class="type-info">
+        <mat-icon [color]="isFullyRefunded() ? 'warn' : 'primary'">
+          {{ isFullyRefunded() ? 'settings_backup_restore' : (order().type === 'WHOLESALE' ?
+          'business' : 'person') }}
+        </mat-icon>
+        <span class="type-text" title="{{ order().type === 'WHOLESALE' ? 'Prodaja' : 'Kupovina' }}">
+          {{ order().type === 'WHOLESALE' ? '😉' : '🤮' }} 
+          @if(isFullyRefunded()) { 
+            <b class="storno-label">(STORNIRANO)</b> 
+          }@else {
+          
+          }
+        </span>
+      </div>
+
+      <div class="price-container">
+        <strong [class.storno-price]="isFullyRefunded()">
+          {{ order().totalAmount | number:'1.2-2' }} RSD
+        </strong>
+      </div>
+    </mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    <mat-expansion-panel class="mat-elevation-z0">
+      <mat-expansion-panel-header>
+        <mat-panel-title>ID: #{{ order().id }}</mat-panel-title>
+        <mat-panel-description> {{ order().createdAt | date:'HH:mm' }}h </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <mat-list role="list">
+        @for (item of order().items; track item.id) {
+        <mat-list-item role="listitem">
+          <div
+            class="item-display"
+            style="display: flex; justify-content: space-between; width: 100%"
+          >
+            <span>{{ item.articleName }}</span>
+            <span>{{ item.quantity }} x {{ item.priceAtSale | number:'1.2-2' }}</span>
+          </div>
+        </mat-list-item>
+        }
+      </mat-list>
+
+      @if(!isFullyRefunded()) {
+      <div class="action-container">
+        <!-- Dugme za promenu tipa sa Loading indikatorom -->
+        @if(order().type === 'WHOLESALE') {
+        <button
+          mat-stroked-button
+          class="change-type-btn long-press-btn"
+          [disabled]="orderStore.isLoading()"
+          appLongPress
+          [duration]="1200"
+          (onLongPress)="orderStore.toggleOrderType(order())"
+        >
+          <!-- Menjamo ikonicu u spinner dok učitava -->
+          @if (orderStore.isLoading()) {
+          <mat-spinner diameter="20" style="display: inline-block; margin-right: 8px"></mat-spinner>
+          } @else {
+          <mat-icon>person</mat-icon>
+          } PREBACI U {{'🤮'}}
+        </button>
+        }
+
+        <!-- Dugme za storno -->
+        <button
+          mat-raised-button
+          color="warn"
+          class="refund-btn"
+          [disabled]="orderStore.isLoading()"
+          [appConfirmDialog]="{
+              title: 'Storniranje računa',
+              message: 'Da li ste sigurni da želite da stornirate KOMPLETAN račun?',
+              positiveButtonLabel: 'STORNIRAJ SVE'
+            }"
+          [onSuccess$]="orderStore.processRefundSuccess()"
+          (confirmAction)="orderStore.processRefund(order().id!)"
+        >
+          <mat-icon>block</mat-icon>
+          STORNIRAJ RAČUN
+        </button>
+      </div>
+      }
+    </mat-expansion-panel>
+  </mat-card-content>
+</mat-card>

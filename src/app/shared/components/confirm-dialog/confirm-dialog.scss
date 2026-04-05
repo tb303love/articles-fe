@@ -1,0 +1,23 @@
+.admin-theme, .user-theme {
+  // Stil za gornju liniju u dijalogu
+  .dialog-theme-bar {
+    height: 6px;
+    background-color: var(--primary-color);
+    border-radius: 4px 4px 0 0;
+  }
+
+  // Naslov u boji teme
+  .mat-mdc-dialog-title {
+    color: var(--text-main) !important;
+    font-weight: bold;
+  }
+
+  // Glavno dugme u dijalogu prati temu
+  .confirm-btn {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    
+    // Ako je User tema, možda želiš accent boju za potvrdu?
+    // background-color: var(--accent-color) !important; 
+  }
+}

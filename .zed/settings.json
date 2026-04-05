@@ -1,0 +1,22 @@
+// Folder-specific settings
+//
+// For a full list of overridable settings, and general information on folder-specific settings,
+// see the documentation: https://zed.dev/docs/configuring-zed#settings-files
+{
+  "languages": {
+    "TypeScript": {
+      "language_servers": ["angular", "!vtsls","..."],
+    },
+    "HTML": {
+      "language_servers": ["angular", "!vtsls", "..."],
+    },
+  },
+  "lsp": {
+    "angular": {
+      "initialization_options": {
+        "angular_language_server_version": "21.2.6",
+        "typescript_version": "5.9.3"
+      }
+    }
+  }
+}

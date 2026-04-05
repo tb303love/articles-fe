@@ -1,0 +1,260 @@
+<div class="article-modal">
+  <header class="dialog-header">
+    <div class="header-content">
+      <div class="icon-circle">
+        <mat-icon>{{ isEditMode() ? 'edit_note' : 'add_box' }}</mat-icon>
+      </div>
+      <div class="title-text">
+        <h2>{{ isEditMode() ? 'Izmena artikla' : 'Novi artikal' }}</h2>
+        <p>{{ isEditMode() ? dialogData?.name : 'Popunite podatke o proizvodu' }}</p>
+      </div>
+    </div>
+    <button
+      mat-icon-button
+      mat-dialog-close
+      class="close-btn"
+      type="button"
+      [disabled]="articleStore.loadingStatus().saving"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+  @if(newArticleForm){
+  <form [formGroup]="newArticleForm" (ngSubmit)="onSubmit()">
+    <mat-dialog-content class="form-content">
+      <div class="form-layout">
+        <!-- SLIKA SEKCIJA -->
+        <div class="image-section">
+          <label class="section-label">Slika artikla</label>
+          <div class="image-container-relative">
+            <div class="image-picker" (click)="openFileExplorer()">
+              @if (!imagePreview()) {
+              <div class="placeholder">
+                <mat-icon>add_a_photo</mat-icon>
+                <span>Klikni za upload</span>
+              </div>
+              } @else {
+              <img [src]="imagePreview()" alt="Preview" />
+              }
+            </div>
+
+            @if (imagePreview()) {
+            <button
+              type="button"
+              mat-mini-fab
+              color="warn"
+              class="remove-img-btn"
+              (click)="removeImage($event); $event.stopPropagation()"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+            }
+          </div>
+        </div>
+
+        <!-- POLJA SEKCIJA -->
+        <div class="fields-section">
+          <!-- NAZIV ARTIKLA -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Naziv artikla</mat-label>
+            <input matInput formControlName="name" />
+            @if (articleStore.loadingStatus().checkName) {
+            <mat-hint>Proveravam dostupnost naziva...</mat-hint>
+            } @if (newArticleForm.get('name')?.hasError('required')) {
+            <mat-error>Naziv je obavezan</mat-error>
+            } @if (newArticleForm.get('name')?.hasError('nameTaken')) {
+            <mat-error>Artikal sa ovim nazivom već postoji</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- KATEGORIJA (Sada opciona - bez mat-error za required) -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Kategorija (opciono)</mat-label>
+            <input matInput formControlName="category" [matAutocomplete]="auto" />
+            <mat-autocomplete #auto="matAutocomplete">
+              @for (cat of categoryStore.sortedNames(); track cat) {
+              <mat-option [value]="cat">{{ cat }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <!-- CENA I ZALIHE -->
+          <div>
+            <mat-form-field appearance="outline">
+              <mat-label>Maloprodajna cena</mat-label>
+              <input matInput appFloatInput formControlName="price" />
+              <span matSuffix class="currency-suffix">RSD</span>
+              @if (newArticleForm.get('price')?.hasError('required')) {
+              <mat-error>Cena je obavezna</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Ulazna cena 1</mat-label>
+              <input matInput appFloatInput formControlName="admissionPrice1" />
+              <span matSuffix class="currency-suffix">RSD</span>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Ulazna cena 2</mat-label>
+              <input matInput appFloatInput formControlName="admissionPrice2" />
+              <span matSuffix class="currency-suffix">RSD</span>
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="bundle-full-width">
+          <div>
+            @if(isEditMode() && dialogData) { @if (dialogData && dialogData.stocks && dialogData.stocks.length > 0) {
+            <mat-expansion-panel class="history-panel" [expanded]="dialogData.stocks.length < 3">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  Trenutno stanje po serijama ({{ dialogData.stocks.length }})
+                </mat-panel-title>
+                <mat-panel-description>
+                  Ukupno: {{ dialogData.totalStock }} kom
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+
+              <div class="history-list">
+                <div class="history-row">
+                  <span><strong>Količina</strong></span>
+                  <span><strong>Rok</strong></span>
+                  <span><strong>LOT / Serija</strong></span>
+                </div>
+                <mat-divider/>
+                @for (s of dialogData.stocks; track s.id) {
+                <div class="history-row">
+                  <span><strong>{{ s.quantity }}</strong> kom</span>
+                  <span>{{ s.expirationDate || 'Nema' }}</span>
+                  <span class="batch-tag">{{ s.batchNumber || 'Bez serije' }}</span>
+                </div>
+                }
+              </div>
+            </mat-expansion-panel>
+            } }
+            <!-- 2. NOVI UNOS ROBE (FormArray) -->
+            @if (!isBundle()) {
+              <div class="new-entry-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                  <h4 style="margin: 0;">Novi kontigent / Ulaz robe</h4>
+                  <button mat-stroked-button color="primary" type="button" (click)="addStock()">
+                    <mat-icon>add</mat-icon> Dodaj novi ulaz
+                  </button>
+                </div>
+            
+                <!-- SAMO OVAJ DEO SE SKROLUJE -->
+                <div formArrayName="initialStocks" class="stocks-viewport">
+                  @for (stock of initialStocks.controls; track $index) {
+                    <div [formGroupName]="$index" class="stock-row">
+                      
+                      <mat-form-field appearance="outline" style="width: 100px;">
+                        <mat-label>Količina</mat-label>
+                        <input matInput type="number" formControlName="quantity" />
+                      </mat-form-field>
+            
+                      <mat-form-field appearance="outline" style="flex: 1;">
+                        <mat-label>Novi Rok</mat-label>
+                        <input matInput type="date" formControlName="expirationDate" />
+                      </mat-form-field>
+            
+                      <mat-form-field appearance="outline" style="flex: 1;">
+                        <mat-label>LOT / Serija</mat-label>
+                        <input matInput formControlName="batchNumber" placeholder="Serija..." />
+                      </mat-form-field>
+            
+                      <button mat-icon-button color="warn" type="button" (click)="initialStocks.removeAt($index)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  } @empty {
+                    <p style="text-align: center; color: #888; padding: 20px;">
+                      Nema novog ulaza. Kliknite na "Dodaj novi ulaz" ako je stigla roba.
+                    </p>
+                  }
+                </div>
+              </div>
+            }
+
+          </div>
+          <!-- BUNDLE SEKCIJA (Prikazuje se samo ako je čekirano) -->
+          <!-- BUNDLE SEKCIJA -->
+          <div class="bundle-toggle mt-2 mb-3">
+            <mat-checkbox (change)="toggleBundle($event.checked)" [checked]="isBundle()">
+              Ovo je Bundle (Paket sastavljen od drugih artikala)
+            </mat-checkbox>
+          </div>
+          @if (isBundle()) {
+          <div formArrayName="components" class="bundle-box">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="section-label">Sastav paketa</label>
+              <button mat-stroked-button color="primary" type="button" (click)="addComponent()">
+                <mat-icon>add</mat-icon> Dodaj artikal
+              </button>
+            </div>
+
+            @for (comp of components.controls; track comp; let i = $index) {
+            <div [formGroupName]="i" class="bundle-row">
+              <!-- 1. IZBOR ARTIKLA (Koristimo filtriranu listu) -->
+              <mat-form-field appearance="outline">
+                <mat-label>Sastojak</mat-label>
+                <mat-select formControlName="componentId">
+                  @for (art of articleStore.baseArticles(); track art.id) {
+                  <mat-option [value]="art.id" [disabled]="art.totalStock <= 0">
+                    {{ art.name }} (Dostupno: {{ art.totalStock }})
+                  </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <!-- 2. KOLIČINA -->
+              <mat-form-field appearance="outline">
+                <mat-label>Kol.</mat-label>
+                <input matInput type="number" formControlName="quantity" min="1" />
+                <!-- PORUKA O GREŠCI -->
+                @if (comp.get('quantity')?.hasError('required')) {
+                <mat-error>Obavezno</mat-error>
+                } @if (comp.get('quantity')?.hasError('min')) {
+                <mat-error>Min 1</mat-error>
+                } @if (comp.get('quantity')?.hasError('max')) {
+                <mat-error>
+                  Maksimum je <strong>{{ comp.get('quantity')?.getError('max').max }}</strong>
+                </mat-error>
+                }
+              </mat-form-field>
+
+              <!-- 3. BRISANJE -->
+              <button mat-icon-button color="warn" type="button" (click)="removeComponent(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+            }
+          </div>
+          }
+        </div>
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button mat-button type="button" [mat-dialog-close]="false">OTKAŽI</button>
+      <button
+        mat-flat-button
+        color="primary"
+        type="submit"
+        [disabled]="newArticleForm.invalid || articleStore.loadingStatus().saving"
+      >
+        @if (articleStore.loadingStatus().saving) {
+        <mat-spinner diameter="20"></mat-spinner>
+        } @else { @if (isEditMode()) {
+        <mat-icon inline="true">save</mat-icon>
+        <span>SAČUVAJ</span>
+        } @else {
+        <mat-icon inline="true">add</mat-icon>
+        <span>DODAJ</span>
+        } }
+      </button>
+    </mat-dialog-actions>
+  </form>
+  } @else {
+  <div class="loading">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  </div>
+  }
+</div>

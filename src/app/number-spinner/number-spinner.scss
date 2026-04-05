@@ -1,0 +1,92 @@
+:host {
+  // Enterprise varijable za brzu promenu
+  --spinner-height: 28px;      // Kompaktna visina za male rezolucije
+  --spinner-width: 64px;       // UKUPNA ŠIRINA (Input 40px + Dugmići 24px)
+  --border-color: #004a99;     // Tamno plava sa tvoje slike
+  --primary-color: #004a99;
+  --bg-hover: #f0f7ff;
+
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.spinner-container {
+  display: flex;
+  height: var(--spinner-height);
+  width: var(--spinner-width);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fff;
+  transition: box-shadow 0.15s ease-in-out;
+
+  &:focus-within {
+    box-shadow: 0 0 0 1px var(--primary-color);
+  }
+
+  input {
+    // Ključno: flex-grow dozvoljava inputu da popuni prostor levo od dugmića
+    flex: 1;
+    width: 100%;
+    min-width: 0; 
+    border: none;
+    outline: none;
+    padding: 0 2px;            // Minimalni padding da broj ne "udara" u ivice
+    font-size: 13px;
+    font-weight: 700;          // Boldovan broj za bolju čitljivost
+    text-align: center;
+    color: #333;
+    background: transparent;
+    caret-color: transparent;  // Sakriva kursor za "readonly" osećaj
+    user-select: none;         // Onemogućava plavo markiranje teksta
+
+    // Uklanjanje sistemskih strelica
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    appearance: textfield;
+  }
+
+  .controls {
+    display: flex;
+    flex-direction: column;
+    width: 24px;               // Fiksna širina dugmića (dovoljno za klik mišem)
+    border-left: 1px solid var(--border-color);
+
+    button {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: none;
+      background: #fff;
+      color: var(--primary-color);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: bold;
+      line-height: 1;
+      transition: background 0.1s;
+
+      &:first-child {
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      &:hover:not(:disabled) {
+        background: var(--bg-hover);
+      }
+
+      &:active:not(:disabled) {
+        background: #d0e4ff;
+      }
+
+      &:disabled {
+        color: #ccc;
+        background: #fafafa;
+        cursor: not-allowed;
+      }
+    }
+  }
+}

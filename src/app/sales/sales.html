@@ -1,0 +1,110 @@
+<mat-drawer-container class="mat-elevation-z4" autosize>
+  <!-- LEVI DRAWER: KORPA -->
+  <mat-drawer
+    #drawer
+    mode="side"
+    [opened]="salesService.selectedArticlesSize() > 0"
+    [disableClose]="true"
+    position="start"
+  >
+    <div class="drawer-wrapper">
+      <app-cart-list
+        [articles]="salesService.selectedArticles()"
+        [success$]="salesService.localSuccess$"
+        (remove)="removeFromCart($event)"
+        (clear)="salesService.clearCart()"
+        (quantityChange)="salesService.updateQuantity($event.id, $event.quantity)"
+      />
+
+      <div class="cart-footer">
+        <div class="footer-controls">
+          <mat-checkbox [(ngModel)]="printReceipt">Štampaj račun</mat-checkbox>
+          <mat-checkbox [(ngModel)]="isGratis"><strong>Gratis!</strong> 🎁</mat-checkbox>
+        </div>
+        <mat-divider />
+        <div class="total-section">
+          <div class="total-row">
+            <span>UKUPNO:</span>
+            <strong>{{ salesService.totalPrice() }} RSD</strong>
+          </div>
+
+          <button
+            mat-raised-button
+            color="primary"
+            appLongPress
+            [duration]="1200"
+            (onLongPress)="placeOrder()"
+            class="long-press-btn"
+          >
+            ŠTAMPAJ RAČUN
+          </button>
+        </div>
+      </div>
+    </div>
+  </mat-drawer>
+
+  <!-- DESNI DRAWER: ISTORIJA -->
+  <mat-drawer #rightDrawer mode="over" position="end" (opened)="salesService.fetchTodayOrders()">
+    <app-orders-list [rightDrawer]="rightDrawer" />
+  </mat-drawer>
+
+  <!-- CENTRALNI DEO: PRETRAGA I ARTIKLI -->
+  <mat-drawer-content>
+    <div class="search-bar">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Pretraži artikle...</mat-label>
+        <input
+          #searchInput
+          matInput
+          [value]="articlesStore.filterQuery()"
+          (input)="onSearch($event)"
+        />
+        <mat-icon matPrefix>search</mat-icon>
+        @if (articlesStore.filterQuery()) {
+        <button matSuffix mat-icon-button (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+        }
+      </mat-form-field>
+      <button mat-icon-button (click)="rightDrawer.toggle()">
+        <mat-icon>receipt_long</mat-icon>
+      </button>
+      @if(authService.isAdmin()){
+      <button mat-button (click)="generateReport()">Dnevni</button>
+      <button mat-button (click)="generateMonthlyReport()">Mesečni</button>
+      }
+    </div>
+
+    <div class="grid-container" [class.drawer-open]="drawer.opened">
+      @for (article of articlesStore.filteredArticles(); track article.id) { @let isOutOfStock =
+      article.totalStock === 0;
+      <mat-card
+        class="example-card"
+        [class.disabled]="isOutOfStock"
+        (click)="addToCart(article, isOutOfStock)"
+      >
+        <mat-card-header [title]="article.name" ]>
+          <mat-card-title>{{ article.name }}</mat-card-title></mat-card-header
+        >
+        <div class="image-wrapper">
+          @if(article.image) {
+          <img mat-card-image loading="lazy" [src]="article.image | imageDomSanitizer" /> } @else {
+          <div class="placeholder-image"><mat-icon>image_not_supported</mat-icon></div>
+          }
+        </div>
+        <mat-card-content>
+          <div class="price-box">
+            <!-- Formatira broj sa razmakom za hiljade i 2 decimale, pa doda RSD -->
+            <span class="amount">{{ article.price | number:'1.2-2' }}</span>
+            <span class="currency">RSD</span>
+          </div>
+        </mat-card-content>
+        <mat-card-footer>
+          @if(isOutOfStock) { <span class="out-of-stock">Nema na stanju</span> } @else {
+          <strong>{{ article.totalStock }}</strong> kom. }
+        </mat-card-footer>
+      </mat-card>
+      }
+    </div>
+  </mat-drawer-content>
+</mat-drawer-container>

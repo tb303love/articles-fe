@@ -1,0 +1,142 @@
+.navbar-container {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 64px; // Fiksna visina navbara
+  transition: background-color 0.3s ease; // Glatki prelaz boja pri prijavi
+  
+  $clock-height: 36px;
+  $primary-indigo: #1a237e;
+  
+  .clock-container {
+    display: inline-flex;
+    align-items: center;
+    height: $clock-height;
+    padding: 0 12px;
+    background-color: rgba($primary-indigo, 0.05); // Suptilna pozadina
+    border: 1px solid rgba($primary-indigo, 0.2);
+    border-radius: 8px;
+    color: $primary-indigo; // Tvoja glavna boja za tekst
+    font-weight: 500;
+    font-family: 'Roboto', sans-serif;
+    gap: 8px;
+  
+    .clock-icon {
+      font-size: 20px;
+      height: 20px;
+      width: 20px;
+      color: $primary-indigo;
+    }
+  
+    .time-text {
+      font-variant-numeric: tabular-nums; // Sprečava "skakanje" širine cifara
+      letter-spacing: 0.5px;
+    }
+  }
+
+  // Dinamičke teme na osnovu role
+  &.admin-nav {
+    background-color: #1a237e !important;
+  } // Indigo za Admina
+  &.user-nav {
+    background-color: #2e7d32 !important;
+  } // Zelena za Kasira
+
+  .nav-brand {
+    font-weight: bold;
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    height: 100%;
+
+    .nav-item {
+      height: 40px;
+      line-height: 40px;
+    }
+
+    .active-link {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      // border-bottom: 2px solid white; // Opciono, na tabletu je pozadina jasnija
+    }
+
+    mat-icon {
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+  }
+
+  .user-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-left: 20px;
+    padding-left: 20px;
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      line-height: 1.1;
+
+      .role-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        background: rgba(0, 0, 0, 0.15);
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-bottom: 2px;
+      }
+
+      .username {
+        font-size: 0.9rem;
+        font-weight: 400;
+        display: flex;
+        align-items: center;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+
+    .logout-btn {
+      height: 40px;
+      border-radius: 8px;
+      font-weight: 500;
+
+      span {
+        margin-left: 4px;
+      }
+    }
+  }
+}
+
+// Responzivnost: Sakrivanje teksta na manjim tabletima ako je gužva
+@media (max-width: 800px) {
+  .nav-item span,
+  .username {
+    display: none;
+  }
+  .user-section {
+    padding-left: 10px;
+    margin-left: 10px;
+  }
+}

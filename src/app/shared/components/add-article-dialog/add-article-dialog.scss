@@ -1,0 +1,269 @@
+.article-modal {
+  display: flex;
+  flex-direction: column;
+  min-width: 680px;
+
+  .dialog-header {
+    background: #1a237e;
+    color: white;
+    padding: 20px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      .icon-circle {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 10px;
+        border-radius: 12px;
+        mat-icon {
+          display: block;
+          font-size: 24px;
+        }
+      }
+      h2 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+      }
+      p {
+        margin: 0;
+        font-size: 0.8rem;
+        opacity: 0.7;
+      }
+    }
+    .close-btn {
+      color: white;
+    }
+  }
+
+  .form-content {
+    padding: 32px !important;
+    background: #fff;
+    overflow-x: hidden;
+  }
+
+  .form-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr; // Dve jednake kolone za gornji deo
+    gap: 24px;
+    align-items: start;
+  }
+
+  // --- SEKCIJA ZA SLIKU ---
+  .image-section {
+    flex-shrink: 0;
+    grid-column: 1; 
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+
+    .section-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 12px;
+    }
+  }
+
+  .image-container-relative {
+    position: relative;
+    width: 210px;
+    height: 210px;
+
+    .image-picker {
+      width: 100%;
+      height: 100%;
+      border: 2px dashed #e0e0e0;
+      border-radius: 20px;
+      cursor: pointer;
+      overflow: hidden; // Drži sliku unutar bordera
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fafafa;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: #1a237e;
+        background: #f8f9ff;
+      }
+      &.has-image {
+        border-style: solid;
+        border-color: #eee;
+      }
+
+      img {
+        width: 100%;
+        object-fit: cover;
+      }
+
+      .placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #bdbdbd;
+        mat-icon {
+          font-size: 40px;
+          width: 40px;
+          height: 40px;
+          margin-bottom: 4px;
+        }
+        span {
+          font-size: 11px;
+          font-weight: 600;
+        }
+      }
+    }
+
+    // CRVENI "X" DUGME
+    .remove-img-btn {
+      position: absolute;
+      top: -12px;
+      right: -12px;
+      z-index: 10;
+      width: 36px !important;
+      height: 36px !important;
+      min-height: 36px !important;
+      padding: 0 !important;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2) !important;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        line-height: 20px;
+      }
+    }
+  }
+
+  // --- SEKCIJA ZA POLJA ---
+  .fields-section {
+    grid-column: 2;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .full-width {
+      width: 100%;
+    }
+
+    .row-group {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 20px;
+    }
+
+    mat-form-field {
+      width: 100%;
+
+      // Centriranje valute (RSD)
+      .currency-suffix {
+        font-weight: 700;
+        font-size: 12px;
+        color: #666;
+        margin-right: 8px;
+      }
+
+      ::ng-deep .mat-mdc-form-field-suffix {
+        display: flex;
+        align-items: center;
+      }
+    }
+  }
+  
+  /* Kontejner za NOVE ulaze robe */
+  .new-entry-section {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 10px;
+    background-color: #fafafa;
+  }
+  
+  /* Skrolujući deo za redove */
+  .stocks-viewport {
+    max-height: 250px; /* Podesi visinu po želji (npr. za oko 3 reda) */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 8px; /* Da skrol bar ne prekriva dugme za brisanje */
+    margin-bottom: 10px;
+  }
+  
+  /* Stil za pojedinačni red */
+  .stock-row {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    margin-bottom: 8px;
+    padding: 8px;
+    border-bottom: 1px dashed #ddd;
+  }
+  
+  .stock-row:last-child {
+    border-bottom: none;
+  }
+
+  
+  .bundle-full-width {
+    grid-column: 1 / -1; // Rasteže se preko obe kolone
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #fcfcfc;
+    
+    .bundle-row {
+      display: flex;
+      gap: 16px;
+    }
+  }
+  
+  .history-list {
+    display: grid;
+    .history-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  mat-dialog-actions {
+    padding: 20px 32px;
+    background: #f9f9f9;
+    border-top: 1px solid #eee;
+    display: flex;
+
+    button[type='submit'] {
+      width: 124px;
+    }
+
+    button {
+      display: flex;
+      align-items: center;
+
+      mat-icon {
+        margin-right: 8px;
+      }
+
+      ::ng-deep {
+        .mdc-button__label {
+          display: flex;
+        }
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        background-color: #ccc !important;
+      }
+    }
+  }
+}

@@ -1,0 +1,47 @@
+<div class="login-wrapper">
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title>Prijava na POS sistem</mat-card-title>
+    </mat-card-header>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <mat-card-content>
+        <!-- Korisničko ime -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Korisničko ime</mat-label>
+          <input matInput formControlName="username" placeholder="Unesite username" autocomplete="off">
+          <mat-icon matPrefix>person</mat-icon>
+          @if (loginForm.get('username')?.hasError('required')) {
+            <mat-error>Korisničko ime je obavezno.</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Lozinka -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Lozinka</mat-label>
+          <input matInput [type]="hide ? 'password' : 'text'" formControlName="password" autocomplete="off">
+          <mat-icon matPrefix>lock</mat-icon>
+          <button type="button" mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-label]="'Sakrij lozinku'">
+            <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          @if (loginForm.get('password')?.hasError('minlength')) {
+            <mat-error>Lozinka mora imati bar 6 karaktera.</mat-error>
+          }
+        </mat-form-field>
+
+        @if (errorMessage) {
+          <div class="error-banner">
+            <mat-icon>error</mat-icon> {{ errorMessage }}
+          </div>
+        }
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-raised-button color="primary" type="submit" 
+                [disabled]="loginForm.invalid" class="login-btn">
+          PRIJAVI SE
+        </button>
+      </mat-card-actions>
+    </form>
+  </mat-card>
+</div>

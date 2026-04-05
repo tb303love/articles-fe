@@ -1,0 +1,145 @@
+<div [class.admin-theme]="true" class="theme-wrapper">
+  @if(articlesStore.loadingStatus().list) {
+  <mat-progress-bar mode="indeterminate" />
+  } @else { @if(articlesStore.count() > 0) {
+  <!-- 1. ZAGLAVLJE AKCIJE (Pretraga, Dugmići) -->
+  <div class="table-header-actions">
+    <div class="header-title">
+      <h2>Lista artikala <span class="count-badge">{{articlesStore.count()}}</span></h2>
+    </div>
+
+    <div class="header-controls">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Pretraži artikle...</mat-label>
+        <input
+          matInput
+          #searchInput
+          [value]="articlesStore.filterQuery()"
+          (input)="onSearch($event)"
+          placeholder="Npr. Coca Cola..."
+        />
+        @if (articlesStore.filterQuery()) {
+        <button mat-icon-button matSuffix (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+        }
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <div class="header-buttons">
+        <button
+          mat-icon-button
+          [color]="showAdmissionPrices() ? 'primary' : ''"
+          (click)="toggleAdmissionPrices()"
+          matTooltip="Prikaži/sakrij nabavne cene"
+        >
+          <mat-icon>{{ showAdmissionPrices() ? 'visibility' : 'visibility_off' }}</mat-icon>
+        </button>
+        <button mat-stroked-button color="primary" (click)="openFileExplorer()">
+          <mat-icon>file_upload</mat-icon> Uvoz
+        </button>
+        <button mat-raised-button color="accent" (click)="openAddArticleDialog()">
+          <mat-icon>add</mat-icon> Novi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. GRID TABELA SA VIRTUAL SCROLL-OM -->
+  <div class="table-container mat-elevation-z8">
+    <!-- FIKSNI GRID HEADER -->
+    <div class="grid-header grid-row" [class.show-addmission-prices]="showAdmissionPrices()">
+      <div class="grid-cell">Ime artikla</div>
+      <div class="grid-cell">Tip</div>
+      <div class="grid-cell">Zaliha</div>
+      @if(showAdmissionPrices()) {
+      <div class="grid-cell admission-header">Ulazna 1</div>
+      <div class="grid-cell admission-header">Ulazna 2</div>
+      }
+      <div class="grid-cell text-right">Maloprodajna cena</div>
+    </div>
+
+    <!-- VIEWPORT (Telo tabele) -->
+    <cdk-virtual-scroll-viewport [itemSize]="76" class="article-viewport">
+      <div
+        *cdkVirtualFor="let row of articlesStore.filteredArticles(); trackBy: trackByFn"
+        class="grid-row clickable"
+        [class.show-addmission-prices]="showAdmissionPrices()"
+        (dblclick)="editArticle(row)"
+        [appHoverOverlay]="custom"
+        [appHoverOverlayData]="row"
+      >
+        <div class="grid-cell font-bold">
+          <span title="{{row.name}}" class="truncate-text">{{row.name}}</span>
+        </div>
+        <div class="grid-cell">
+          <span class="category-tag">{{row.category}}</span>
+        </div>
+        <div class="grid-cell">
+          <span [class.low-stock]="row.totalStock < 5">{{row.totalStock}} kom</span>
+        </div>
+
+        <!-- Nabavne cene (grid-cell admission se krije preko CSS-a) -->
+        @if(showAdmissionPrices()) {
+        <div class="grid-cell admission-cell italic">{{row.admissionPrice1 | currency:'RSD '}}</div>
+        <div class="grid-cell admission-cell italic">{{row.admissionPrice2 | currency:'RSD '}}</div>
+        }
+
+        <!-- Maloprodajna cena + Akcije -->
+        <div class="grid-cell price-column">
+          <div class="action-cell">
+            <span class="price-amount">{{ row.price | number:'1.2-2' }}</span>
+            <span class="price-currency">RSD</span>
+
+            <div class="icon-buttons">
+              <button
+                mat-icon-button
+                color="warn"
+                [appConfirmDialog]="{
+                      title: 'Brisanje artikla',
+                      message: 'Obrisati ' + row.name + '?',
+                      positiveButtonLabel: 'Obriši'
+                    }"
+                [isLoading]="articlesStore.loadingStatus.saving"
+                [onSuccess$]="articlesStore.operationSuccess$()"
+                (confirmAction)="articlesStore.deleteArticle(row.id)"
+                (click)="$event.stopPropagation()"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </cdk-virtual-scroll-viewport>
+  </div>
+
+  } @else {
+  <!-- EMPTY STATE -->
+  <div class="centered-empty-state">
+    <div class="stack-buttons">
+      <mat-icon class="empty-illustration">inventory_2</mat-icon>
+      <h1 class="empty-title">Vaš inventar je prazan</h1>
+      <button mat-raised-button color="accent" class="huge-btn" (click)="openAddArticleDialog()">
+        <mat-icon>add</mat-icon> DODAJ PRVI ARTIKAL
+      </button>
+      <div class="separator"><span>ili</span></div>
+      <button mat-stroked-button color="primary" class="huge-btn" (click)="openFileExplorer()">
+        <mat-icon>file_upload</mat-icon> UVEZI IZ EXCEL-A
+      </button>
+    </div>
+  </div>
+  } }
+
+  <!-- TEMPLATE ZA HOVER SLIKU -->
+  <ng-template #custom let-row>
+    @if (row && row.image) {
+    <img [src]="row.image | imageDomSanitizer" loading="lazy" class="hover-preview-img" />
+    } @else {
+    <div class="no-image-icon">
+      <mat-icon>image_not_supported</mat-icon>
+      <span>Nema fotografije</span>
+    </div>
+    }
+  </ng-template>
+</div>

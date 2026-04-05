@@ -1,0 +1,31 @@
+<div class="custom-dialog-header">
+  <div class="header-left">
+    <!-- Ikonica u zaobljenom kvadratu -->
+    <div class="icon-wrapper">
+      <mat-icon>help_outline</mat-icon> 
+    </div>
+    <div class="title-stack">
+      <span class="main-title">{{ data.title }}</span>
+      <span class="sub-title">Potvrda akcije</span>
+    </div>
+  </div>
+  <!-- Dugme za zatvaranje -->
+  <button mat-icon-button [mat-dialog-close]="false" class="close-btn">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content>
+  <p>{{ data.message }}</p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="false" [disabled]="data.isLoading()">OTKAŽI</button>
+  <button mat-raised-button class="confirm-btn" (click)="data.confirm()" [disabled]="data.isLoading()">
+    @if (data.isLoading()) {
+      <mat-spinner diameter="20"></mat-spinner>
+    } @else {
+      {{ data.positiveButtonLabel }} 
+    }
+  </button>
+</mat-dialog-actions>

@@ -1,0 +1,53 @@
+<div class="spinner-container" role="group">
+  <input
+    type="text"
+    #inputField
+    inputmode="numeric"
+    [value]="value()"
+    (keydown)="onKeydown($event)"
+    [style.width]="getDynamicWidth()"
+    (paste)="onPaste($event)"
+    (select)="onSelect($event)"
+    (focus)="onFocus($event)"
+    [attr.aria-valuenow]="value()"
+    [attr.aria-valuemin]="1"
+    [attr.aria-valuemax]="max()"
+    autocomplete="off"
+    spellcheck="false"
+    role="spinbutton"
+    autocomplete="off"
+    spellcheck="false"
+  />
+
+  <div class="controls">
+    <!-- Povećaj -->
+    <button
+      type="button"
+      (mousedown)="onStart(1)"
+      (mouseup)="onStop()"
+      (mouseleave)="onStop()"
+      (touchstart)="onStart(1)"
+      (touchend)="onStop()"
+      [disabled]="value() >= max()"
+      tabindex="-1"
+      aria-label="Povećaj"
+    >
+      <span class="icon">+</span>
+    </button>
+
+    <!-- Smanji -->
+    <button
+      type="button"
+      (mousedown)="onStart(-1)"
+      (mouseup)="onStop()"
+      (mouseleave)="onStop()"
+      (touchstart)="onStart(-1)"
+      (touchend)="onStop()"
+      [disabled]="value() <= 1"
+      tabindex="-1"
+      aria-label="Smanji"
+    >
+      <span class="icon">−</span>
+    </button>
+  </div>
+</div>

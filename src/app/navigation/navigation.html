@@ -1,0 +1,39 @@
+<mat-toolbar [color]="auth.isAdmin() ? 'primary' : 'accent'" 
+             class="navbar-container mat-elevation-z4" 
+             [class.admin-nav]="auth.isAdmin()" 
+             [class.user-nav]="!auth.isAdmin()">
+  
+  <span class="nav-brand">Ogilenko</span>
+  
+  <span class="spacer"></span>
+
+  @if (auth.isAuthenticated()) {
+    <div class="nav-links">
+      <!-- Linkovi za Admina -->
+      @if (auth.isAdmin() && articleStore.count() > 0) {
+        <a mat-button routerLink="/artikli" routerLinkActive="active-link" class="nav-item">
+          <mat-icon>inventory_2</mat-icon> 
+          <span>Artikli</span>
+        </a>
+        <a mat-button routerLink="/prodaja" routerLinkActive="active-link" class="nav-item">
+          <mat-icon>shopping_cart</mat-icon> 
+          <span>Prodaja</span>
+        </a>
+      }
+
+      <div class="user-section">
+        <div class="user-info">
+          <span class="role-badge">{{ auth.isAdmin() ? 'Admin' : 'Kasir' }}</span>
+          <div class="time-display">
+            {{ currentTime() | date: 'HH:mm' }}
+          </div>
+        </div>
+        
+        <button mat-flat-button color="warn" (click)="onLogout()" class="logout-btn">
+          <mat-icon>logout</mat-icon>
+          <span>Izlaz</span>
+        </button>
+      </div>
+    </div>
+  }
+</mat-toolbar>

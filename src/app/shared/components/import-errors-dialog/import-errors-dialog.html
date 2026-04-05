@@ -1,0 +1,44 @@
+<h2 mat-dialog-title class="error-title">
+  <mat-icon color="warn">report_problem</mat-icon>
+  Izveštaj o greškama pri uvozu
+</h2>
+
+<mat-dialog-content>
+  <p>Sledeći redovi iz Excel fajla su preskočeni zbog neispravnih podataka:</p>
+  
+  <div class="table-container">
+    <table mat-table [dataSource]="data.errors" class="mat-elevation-z0">
+      
+      <!-- Red kolona -->
+      <ng-container matColumnDef="row">
+        <th mat-header-cell *matHeaderCellDef> Red </th>
+        <td mat-cell *matCellDef="let element"> <b>#{{element.row}}</b> </td>
+      </ng-container>
+
+      <!-- Naziv kolona -->
+      <ng-container matColumnDef="itemName">
+        <th mat-header-cell *matHeaderCellDef> Artikal </th>
+        <td mat-cell *matCellDef="let element"> {{element.itemName}} </td>
+      </ng-container>
+
+      <!-- Razlozi kolona -->
+      <ng-container matColumnDef="reasons">
+        <th mat-header-cell *matHeaderCellDef> Razlog greške </th>
+        <td mat-cell *matCellDef="let element">
+          <ul class="reasons-list">
+            @for (reason of element.reasons; track reason) {
+              <li>{{reason}}</li>
+            }
+          </ul>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-raised-button color="primary" mat-dialog-close>RAZUMEM</button>
+</mat-dialog-actions>
