@@ -1,3 +1,5 @@
+@use '../shared/mixins/scrollbar-gutter' as *;
+
 :host {
   display: flex;
   flex-direction: column;
@@ -5,89 +7,63 @@
   min-height: 0;
   width: 100%;
   overflow: hidden;
-}
-
-.table-scroll-area {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0;
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-
-    thead {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: #fcfcfc;
-      box-shadow: 0 1px 0 #eee;
-
-      th {
-        padding: 12px 4px;
-        font-size: 0.75rem;
-        color: #888;
-        text-transform: uppercase;
-        background: inherit;
-        
-        &:nth-child(1) { width: 35%; text-align: left; padding-left: 15px; }
-        &:nth-child(2) { width: 18%; text-align: right; }
-        &:nth-child(3) { width: 22%; text-align: center; }
-        &:nth-child(4) { width: 15%; text-align: right; }
-        &:nth-child(5) { width: 10%; text-align: center; }
-      }
+  
+  .header {
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .header, .row {
+    align-items: center;
+    border-left: 4px solid transparent; 
+    display: flex;
+    > div {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    > div:nth-child(1) {
+      flex: 0 0 112px;
+      justify-content: flex-start;
     }
 
-    tbody {
-      tr {
-        border-bottom: 1px solid #f0f0f0;
-        border-left: 4px solid transparent; 
-        transition: background-color 0.1s ease-in; // Brz odziv na fokus
-    
-        &:hover { background-color: #f8f8f8; }
-    
-        // ŽUTI FOKUS (Highlight marker efekt)
-        &:focus-within {
-          background-color: #fff9c4 !important; // Jasna žuta koja "upada u oko"
-          border-left: 4px solid #fbc02d; // Tamnije žuta/zlatna ivica za definiciju
-          box-shadow: inset 0 0 8px rgba(251, 192, 45, 0.1);
-    
-          td {
-            color: #000;
-            font-weight: 600; // Još deblji font za maksimalnu čitljivost
-          }
-    
-          .sum-cell {
-            color: #d32f2f; // Crvena suma u žutom redu - nemoguće promašiti iznos
-            font-weight: 800;
-          }
-    
-          // Mala vizuelna varka: u žutom redu, spiner može da izgleda malo veće
-          app-number-spinner {
-            transform: scale(1.02);
-            transition: transform 0.1s ease;
-          }
-        }
+    > .action-cell {
+      justify-content: end;
+    }
+  }
+  
+  .items {
+    flex: 1;
+    overflow-y: auto;
+    height: calc(100vh - 308px);
+    @include scrollbar-gutter;
+  }
+  
+  .row {
+    height: 72px;
+    &:nth-child(even) {
+      background-color: #f5f5f5;
+    }
+
+    &:focus-within {
+      background-color: #fff9c4; // Jasna žuta koja "upada u oko"
+      border-left: 4px solid #fbc02d; // Tamnije žuta/zlatna ivica za definiciju
+      box-shadow: inset 0 0 8px rgba(251, 192, 45, 0.1);
+
+      /* td {
+        color: #000;
+        font-weight: 600; // Još deblji font za maksimalnu čitljivost
+      } */
+
+      .sum-cell {
+        color: #d32f2f; // Crvena suma u žutom redu - nemoguće promašiti iznos
+        font-weight: 800;
       }
 
-      td {
-        padding: 6px 4px;
-        font-size: 0.9rem;
-        vertical-align: middle;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-
-        &:nth-child(1) { padding-left: 11px; } // Smanjen padding jer imamo border-left 4px
-        &:nth-child(2) { text-align: right; }
-        &:nth-child(3) { text-align: center; }
-        &:nth-child(4) { text-align: right; font-weight: 500; }
-        
-        &.sum-cell {
-          font-size: 0.95rem;
-        }
+      // Mala vizuelna varka: u žutom redu, spiner može da izgleda malo veće
+      app-number-spinner {
+        transform: scale(1.02);
+        transition: transform 0.1s ease;
       }
     }
   }

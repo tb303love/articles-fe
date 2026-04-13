@@ -18,11 +18,11 @@ export function mapFormControlsToFormData(controls: AddArticleFormControls): For
     })),
     // NOVO: Šaljemo komponente ako postoje (za Bundle)
     components: controls.components.value.map(c => ({
-      articleId: c.componentId,
+      componentId: c.componentId,
       quantity: c.quantity
     }))
   };
-
+console.log(articleRequest);
   const articleBlob = new Blob(
     [JSON.stringify(articleRequest)],
     { type: 'application/json' }

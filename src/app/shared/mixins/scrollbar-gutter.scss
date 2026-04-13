@@ -1,0 +1,11 @@
+@mixin scrollbar-gutter {
+  scrollbar-gutter: stable; // Čuva prostor za skrol bar uvek
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+  }
+}

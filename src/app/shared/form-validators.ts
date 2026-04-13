@@ -63,7 +63,8 @@ export function articleNoChangesValidator(
       formValue.price !== initialArticle.price ||
       formValue.admissionPrice1 !== initialArticle.admissionPrice1 ||
       formValue.admissionPrice2 !== initialArticle.admissionPrice2 ||
-      formValue.category !== initialArticle.category;
+      formValue.category !== initialArticle.category ||
+      formValue.composition !== initialArticle.composition;
 
     // 2. Provera slike
     const imageChanged = formValue.image !== initialFile;
