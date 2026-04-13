@@ -127,7 +127,6 @@ export class AddArticleDialog implements OnDestroy {
       .pipe(
         filter((dto) => dto.state === 'loaded'),
         tap(({ image, event }) => {
-          console.log(event);
           if (event === 'load') {
             this.newArticleForm = initializeForm(
               this.dialogData,

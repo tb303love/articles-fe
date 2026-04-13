@@ -21,8 +21,6 @@ addEventListener(
       if (jsonData.length > 0) {
         const fileHeaders = Object.keys(jsonData[0]);
         const missingHeaders = REQUIRED_HEADERS.filter((h) => !fileHeaders.includes(h));
-        
-        console.log(fileHeaders);
 
         if (missingHeaders.length > 0) {
           postMessage({

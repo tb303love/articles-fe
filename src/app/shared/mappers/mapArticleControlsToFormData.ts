@@ -22,7 +22,7 @@ export function mapFormControlsToFormData(controls: AddArticleFormControls): For
       quantity: c.quantity
     }))
   };
-console.log(articleRequest);
+
   const articleBlob = new Blob(
     [JSON.stringify(articleRequest)],
     { type: 'application/json' }
