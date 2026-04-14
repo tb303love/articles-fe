@@ -15,7 +15,7 @@ import { articleNoChangesValidator, checkArticleName, validateImage } from '../.
  */
 export function createStockGroup(
   qty: number = 0,
-  expiration: string | null = null,
+  expiration: Date | null = null,
   batch: string = '',
 ): StockFormGroup {
   return new FormGroup({
