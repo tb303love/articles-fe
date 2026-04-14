@@ -14,14 +14,14 @@ import { articleNoChangesValidator, checkArticleName, validateImage } from '../.
  * Kreira grupu za jednu seriju zaliha (Stock Batch)
  */
 export function createStockGroup(
-  qty: number = 0,
+  qty: number = 1,
   expiration: Date | null = null,
   batch: string = '',
 ): StockFormGroup {
   return new FormGroup({
     quantity: new FormControl(qty, {
       nonNullable: true,
-      validators: [Validators.required, Validators.min(0)],
+      validators: [Validators.required, Validators.min(1)],
     }),
     expirationDate: new FormControl(expiration, {
       validators: [Validators.required],
