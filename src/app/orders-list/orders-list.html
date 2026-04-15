@@ -11,7 +11,9 @@
       (change)="orderStore.updateFilter($event.value)"
     >
       <mat-button-toggle value="ALL">Sve</mat-button-toggle>
-      <mat-button-toggle value="ACTIVE">Aktivne (Prodaja)</mat-button-toggle>
+      <mat-button-toggle value="ACTIVE">Aktivne</mat-button-toggle>
+      <mat-button-toggle value="WHOLESALE">Nekucane</mat-button-toggle>
+      <mat-button-toggle value="RETAIL">Kucane</mat-button-toggle> <!-- NOVO -->
       <mat-button-toggle value="REFUNDED">Povraćaji</mat-button-toggle>
     </mat-button-toggle-group>
   </div>
