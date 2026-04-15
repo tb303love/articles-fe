@@ -21,7 +21,8 @@ export function mapFormControlsToFormData(controls: AddArticleFormControls): For
     // NOVO: Šaljemo niz serija i rokova
     initialStocks: controls.initialStocks.value.map(s => ({
       quantity: s.quantity,
-      expirationDate: toLocalYMD(s.expirationDate)
+      expirationDate: toLocalYMD(s.expirationDate),
+      batchNumber: s.batchNumber
     })),
     // NOVO: Šaljemo komponente ako postoje (za Bundle)
     components: controls.components.value.map(c => ({
