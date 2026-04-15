@@ -4,20 +4,29 @@
     <button mat-icon-button (click)="rightDrawer().close()"><mat-icon>close</mat-icon></button>
   </div>
 
-  <div class="filter-bar">
-    <mat-button-toggle-group
-      #group="matButtonToggleGroup"
-      [value]="orderStore.filterStatus()"
-      (change)="orderStore.updateFilter($event.value)"
-    >
-      <mat-button-toggle value="ALL">Sve</mat-button-toggle>
-      <mat-button-toggle value="ACTIVE">Aktivne</mat-button-toggle>
-      <mat-button-toggle value="WHOLESALE">Nekucane</mat-button-toggle>
-      <mat-button-toggle value="RETAIL">Kucane</mat-button-toggle> <!-- NOVO -->
-      <mat-button-toggle value="REFUNDED">Povraćaji</mat-button-toggle>
-    </mat-button-toggle-group>
+  <div class="filter-container">
+    <div class="filter-bar">
+      <span class="filter-label">Filteri po tipu porudžbine:</span>
+      <mat-button-toggle-group
+        #group="matButtonToggleGroup"
+        [value]="orderStore.filterStatus()"
+        (change)="orderStore.updateFilter($event.value)"
+      >
+        <mat-button-toggle value="ALL" title="Sve">
+          <mat-icon>list</mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="ACTIVE" title="Aktivne">
+          <mat-icon>check_circle</mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="WHOLESALE" title="Nekucane">😉</mat-button-toggle>
+        <mat-button-toggle value="RETAIL" title="Kucane">🤮</mat-button-toggle>
+        <mat-button-toggle value="REFUNDED" title="Povraćaji">
+          <mat-icon color="warn">settings_backup_restore</mat-icon>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
   </div>
-  
+
   <div class="orders-list-container">
     @for (order of orderStore.filteredOrders(); track order.id) {
       <!-- SAMO OVA JEDNA LINIJA -->
