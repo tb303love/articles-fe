@@ -87,6 +87,14 @@ export class ArticlesApiService {
     });
   }
 
+  writeOffArticleStock(id: number): Observable<any> {
+    return this.httpClient.delete(`${this.baseUrl}/stock/${id}`);
+  }
+  
+  getAffectedBundles(id: number): Observable<string[]> {
+    return this.httpClient.get<string[]>(`${this.baseUrl}/stock/${id}/affected-bundles`);
+  }
+
   /**
    * POMOĆNA FUNKCIJA: Pokreće worker sa datim bufferom i podacima
    */

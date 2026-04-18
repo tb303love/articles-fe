@@ -1,3 +1,6 @@
+
+@use '../shared/mixins/scrollbar-gutter' as *;
+
 // --- 1. STRUKTURA I KONTEJNERI ---
 $header-actions-height: 76px;
 .theme-wrapper {
@@ -79,10 +82,8 @@ $header-actions-height: 76px;
   outline: none;
   overflow-y: auto;
   overflow-x: hidden; // Isključeno ovde da ne pravi dupli skrol
-  scrollbar-gutter: stable; // Čuva prostor za skrol bar uvek
   
-  &::-webkit-scrollbar { width: 8px; }
-  &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+  @include scrollbar-gutter;
 }
 
 .grid-cell {

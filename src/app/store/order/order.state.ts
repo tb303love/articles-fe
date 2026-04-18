@@ -4,7 +4,7 @@ export interface OrderState {
   orders: Order[];
   isLoading: boolean;
   totalDailySales: RevenueSummary;
-  filterStatus: 'ALL' | 'ACTIVE' | 'REFUNDED';
+  filterStatus: 'ALL' | 'ACTIVE' | 'REFUNDED' | 'RETAIL' | 'WHOLESALE' ;
 }
 
 export const initialState: OrderState = {

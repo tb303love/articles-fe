@@ -25,7 +25,7 @@ export function withOrderSelectors() {
 
       // Neto pazar (Prodaja - Storno)
       netDailySales: computed(() => state.totalDailySales().netRevenue),
-      
+
       grossRetail: computed(() => state.totalDailySales().grossRetail),
 
       // Glavna logika za prikaz liste na ekranu
@@ -36,8 +36,17 @@ export function withOrderSelectors() {
         switch (filter) {
           case 'ACTIVE':
             return allOrders.filter((o) => !isFullyRefunded(o));
+
+          case 'WHOLESALE':
+            return allOrders.filter((o) => o.type === 'WHOLESALE' && !isFullyRefunded(o));
+
+          case 'RETAIL':
+            // Prikazujemo samo Maloprodaju koja NIJE stornirana
+            return allOrders.filter((o) => o.type === 'RETAIL' && !isFullyRefunded(o));
+
           case 'REFUNDED':
             return allOrders.filter((o) => isFullyRefunded(o));
+
           default:
             return allOrders;
         }

@@ -10,10 +10,10 @@ export interface StockUpdate {
 @Injectable({ providedIn: 'root' })
 export class StockSyncService {
   // Neutralni stream koji niko ne uvozi u konstruktoru stora
-  private stockUpdateSubject = new Subject<StockUpdate>();
+  private stockUpdateSubject = new Subject<void>();
   stockUpdate$ = this.stockUpdateSubject.asObservable();
 
-  notifyStockChanges(updates: StockUpdate) {
-    this.stockUpdateSubject.next(updates);
+  notifyStockChanges() {
+    this.stockUpdateSubject.next();
   }
 }

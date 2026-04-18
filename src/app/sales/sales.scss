@@ -1,3 +1,4 @@
+@use '../shared/mixins/scrollbar-gutter' as *;
 :host {
   $nav-height: 64px;
   $primary-pos: #2e7d32; // POS Zelena
@@ -118,6 +119,8 @@
       transition: all 0.3s ease; // Glatko širenje/skupljanje
       height: calc(100vh - 144px); /* Visina ekrana minus visina headera */
       overflow-y: auto;
+      
+      @include scrollbar-gutter;
 
       &.drawer-open {
         // Kada je korpa otvorena (450px), preostaje ~900px prostora.

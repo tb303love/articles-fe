@@ -14,16 +14,18 @@ import { articleNoChangesValidator, checkArticleName, validateImage } from '../.
  * Kreira grupu za jednu seriju zaliha (Stock Batch)
  */
 export function createStockGroup(
-  qty: number = 0,
-  expiration: string | null = null,
-  batch: string | null = null,
+  qty: number = 1,
+  expiration: Date | null = null,
+  batch: string = '',
 ): StockFormGroup {
   return new FormGroup({
     quantity: new FormControl(qty, {
       nonNullable: true,
-      validators: [Validators.required, Validators.min(0)],
+      validators: [Validators.required, Validators.min(1)],
     }),
-    expirationDate: new FormControl(expiration),
+    expirationDate: new FormControl(expiration, {
+      validators: [Validators.required],
+    }),
     batchNumber: new FormControl(batch),
   });
 }
@@ -78,7 +80,6 @@ export function createComponentGroup(
  
    // Ako kreiramo NOVI artikal
    if (!article) {
-     formGroup.controls.initialStocks.push(createStockGroup());
      return formGroup;
    }
  
@@ -86,17 +87,19 @@ export function createComponentGroup(
    
    // 1. Inicijalno prazan niz za NOVI ulaz robe (initialStocks)
    // Ne popunjavamo ga starim zalihama jer su one Read-Only
-   formGroup.controls.initialStocks.clear();
+   formGroup.controls.initialStocks.clear({ emitEvent: false });
  
    // 2. Popunjavanje Bundle komponenti (ako je paket)
    if (article.composition && article.composition.length > 0) {
      article.composition.forEach((comp) => {
        formGroup.controls.components.push(
-         createComponentGroup(articleStore, comp.articleId, comp.quantity, comp.name)
+         createComponentGroup(articleStore, comp.articleId, comp.quantity, comp.name),
+         { emitEvent: false }
        );
      });
      // Bundle nikada nema svoje zalihe
-     formGroup.controls.initialStocks.clear();
+     formGroup.controls.initialStocks.clear({ emitEvent: false });
+     formGroup.controls.initialStocks.disable({ emitEvent: false });
    }
  
    // 3. Postavljanje osnovnih vrednosti (name, price, category...)
@@ -107,7 +110,7 @@ export function createComponentGroup(
      admissionPrice2: article.admissionPrice2,
      category: article.category,
      image,
-   });
+   },{ emitEvent: false });
  
    // Validator za detekciju promena (da li je bilo šta pipnuto)
    formGroup.addValidators(articleNoChangesValidator(article, image));

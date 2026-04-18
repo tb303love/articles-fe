@@ -1,57 +1,46 @@
-<div class="table-scroll-area">
-  <table>
-    <thead>
-      <tr>
-        <th>Naziv</th>
-        <th>Cena</th>
-        <th class="qty-column">Kol.</th>
-        <th>Suma</th>
-        <th class="action-cell">
-          <!-- Dugme sa tvojom Confirm direktivom -->
-          <button
-            #clearCartBtn
-            mat-icon-button
-            color="warn"
-            title="Isprazni celu korpu"
-            [appConfirmDialog]="{ 
-                title: 'Pražnjenje korpe', 
-                message: 'Da li ste sigurni da želite da uklonite SVE artikle?', 
-                positiveButtonLabel: 'Obriši sve' 
-            }"
-            [onSuccess$]="success$()"
-            (confirmAction)="clear.emit()"
-          >
-            <mat-icon>delete_sweep</mat-icon>
-          </button>
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      @for(item of articles() | keyvalue; track item.key) {
-      <tr>
-        <td class="name-cell">{{ item.value.name }}</td>
-        <td>{{ item.value.price | number:'1.0-0' }}</td>
-        <td>
-          <app-number-spinner
-              [articleId]="item.value.id"
-              [inputValue]="item.value.quantity" 
-              [max]="item.value.totalStock" 
-              (valueChanged)="quantityChange.emit({ quantity: $event, id: item.value.id })"
-          />
-        </td>
-        <td class="sum-cell">{{ (item.value.price * item.value.quantity) | number:'1.0-0' }}</td>
-        <td class="action-cell">
-          <button
-            mat-icon-button
-            color="warn"
-            (click)="remove.emit(item.value)"
-            tabindex="-1"
-          >
-            <mat-icon>delete</mat-icon>
-          </button>
-        </td>
-      </tr>
-      }
-    </tbody>
-  </table>
+<div class="header">
+  <div>Naziv</div>
+  <div>Cena</div>
+  <div>Kol.</div>
+  <div>Suma</div>
+  <div class="action-cell">
+    <button
+      #clearCartBtn
+      mat-icon-button
+      color="warn"
+      title="Isprazni celu korpu"
+      [appConfirmDialog]="{
+            title: 'Pražnjenje korpe',
+            message: 'Da li ste sigurni da želite da uklonite SVE artikle?',
+            positiveButtonLabel: 'Obriši sve'
+        }"
+      [onSuccess$]="success$()"
+      (confirmAction)="clear.emit()"
+    >
+      <mat-icon>delete_sweep</mat-icon>
+    </button>
+  </div>
+</div>
+<div class="items">
+  @for(item of articles() | keyvalue; track item.key) {
+  @let article = item.value;
+  <div class="row" [title]="article.name">
+    <div class="name-cell">
+      <span>{{ article.name }}</span>
+    </div>
+    <div>{{ article.price | number:'1.0-0' }}</div>
+    <app-number-spinner
+      [articleId]="article.id"
+      [inputValue]="article.quantity"
+      [max]="article.totalStock"
+      (valueChanged)="quantityChange.emit({ quantity: $event, id: article.id })"
+    />
+    <div class="sum-cell">{{ (article.price * article.quantity) | number:'1.0-0' }}</div>
+    <div class="action-cell">
+      <button mat-icon-button color="warn" (click)="remove.emit(article)" tabindex="-1">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </div>
+  }
 </div>

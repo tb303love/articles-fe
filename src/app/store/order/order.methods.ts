@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { patchState, signalStoreFeature, type, withMethods } from '@ngrx/signals';
 import { forkJoin, Subject, switchMap, tap } from 'rxjs';
-import { Order, OrderRequest, OrderType, Refund } from '../../core/model';
+import { Order, OrderRequest, OrderType } from '../../core/model';
 import { RefundService } from '../../core/services/refund.service';
 import { SalesService } from '../../core/services/sales-service';
 import { StockSyncService } from '../../core/services/stock-sync-service';
@@ -42,16 +42,6 @@ export function withOrderMethods() {
           salesService
             .placeOrder(orderRequest)
             .pipe(
-              tap(() => {
-                const stockUpdates = orderRequest.items.map((item) => ({
-                  articleId: item.articleId,
-                  quantity: item.quantity,
-                }));
-                stockSync.notifyStockChanges({
-                  items: stockUpdates,
-                  type: orderRequest.type,
-                });
-              }),
               switchMap(() =>
                 forkJoin({
                   orders: salesService.fetchTodayOrders(),
@@ -66,6 +56,7 @@ export function withOrderMethods() {
                   totalDailySales: revenue,
                   isLoading: false,
                 });
+                stockSync.notifyStockChanges();
                 snackBar.open('Porudžbina uspešno kreirana!', 'OK', { duration: 3000 });
               },
               error: (err) => {
@@ -141,19 +132,6 @@ export function withOrderMethods() {
           refundService
             .processRefund(orderId)
             .pipe(
-              tap((newRefund: Refund) => {
-                // Backend vraća Refund sa svim stavkama koje su stornirane
-                const stockUpdates = newRefund.items.map((item: any) => ({
-                  articleId: item.articleId,
-                  quantity: item.quantity,
-                }));
-
-                // Vraćamo kompletnu robu na stanje
-                stockSync.notifyStockChanges({
-                  items: stockUpdates,
-                  type: OrderType.REFUND,
-                });
-              }),
               switchMap(() =>
                 forkJoin({
                   orders: salesService.fetchTodayOrders(),
@@ -168,7 +146,7 @@ export function withOrderMethods() {
                   totalDailySales: revenue,
                   isLoading: false,
                 });
-
+                stockSync.notifyStockChanges();
                 refundSuccessSubject.next();
                 snackBar.open('Račun uspešno storniran!', 'OK', { duration: 3000 });
               },

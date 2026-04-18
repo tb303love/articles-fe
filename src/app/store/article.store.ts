@@ -9,7 +9,7 @@ import {
   withState,
 } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { catchError, debounceTime, EMPTY, filter, map, pipe, Subject, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, EMPTY, filter, map, mergeMap, pipe, Subject, switchMap, tap } from 'rxjs';
 import { ArticleResponse, OrderType, SalesArticle } from '../core/model';
 import { ArticlesApiService } from '../core/services/articles-api-service';
 import { StockSyncService, StockUpdate } from '../core/services/stock-sync-service';
@@ -21,6 +21,7 @@ type ArticleState = {
     list: boolean;
     checkName: boolean;
     saving: boolean;
+    writeOff: boolean;
   };
   filterQuery: string;
   isAvailable: boolean;
@@ -37,6 +38,7 @@ const initialState: ArticleState = {
     list: false,
     checkName: false,
     saving: false,
+    writeOff: false,
   },
   filterQuery: '',
   isAvailable: false,
@@ -64,6 +66,9 @@ export const ArticleStore = signalStore(
       operationSuccess$() {
         return operationSuccessSubject.asObservable();
       },
+      getAffectedBundles: rxMethod<number>(pipe(
+        switchMap((id) => articleService.getAffectedBundles(id)),
+      )),
       checkArticleName: rxMethod<CheckNamePayload>(
         pipe(
           tap(() =>
@@ -148,12 +153,8 @@ export const ArticleStore = signalStore(
             map((event) => event.body as ArticleResponse),
           )
           .subscribe({
-            next: (response) => {
-              const newArt = mapToSalesArticle(response);
-              patchState(store, (state) => ({
-                articles: [newArt, ...state.articles],
-                loadingStatus: { ...store.loadingStatus(), saving: false },
-              }));
+            next: () => {
+              this.loadAll();
               operationSuccessSubject.next();
             },
             error: (err) => {
@@ -175,9 +176,8 @@ export const ArticleStore = signalStore(
           )
           .subscribe({
             next: (response) => {
-              const updatedArt = mapToSalesArticle(response);
+              this.loadAll();
               patchState(store, (state) => ({
-                articles: state.articles.map((a) => (a.id === id ? updatedArt : a)),
                 loadingStatus: { ...store.loadingStatus(), saving: false },
               }));
               operationSuccessSubject.next();
@@ -204,11 +204,27 @@ export const ArticleStore = signalStore(
           },
         });
       },
+      writeOffArticleStock(id: number) {
+        patchState(store, { loadingStatus: { ...store.loadingStatus(), writeOff: true } });
+        articleService.writeOffArticleStock(id).subscribe({
+          next: () => {
+            patchState(store, (state) => ({
+              articles: state.articles.filter((a) => a.id !== id),
+              loadingStatus: { ...store.loadingStatus(), writeOff: false },
+            }));
+            operationSuccessSubject.next();
+          },
+          error: (err: any) => {
+            patchState(store, { loadingStatus: { ...store.loadingStatus(), writeOff: false } });
+            console.error('Write off error:', err);
+          },
+        });
+      },
     };
   }),
   withHooks({
     onInit(store, stockSync = inject(StockSyncService)) {
-      stockSync.stockUpdate$.subscribe((updates) => store.updateStock(updates));
+      stockSync.stockUpdate$.pipe(map(() => store.loadAll())).subscribe();
     },
   }),
 );
