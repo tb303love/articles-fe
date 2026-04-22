@@ -1,11 +1,11 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { exhaustMap, from, map, Observable, of, switchMap } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { ImportErrorsDialog } from '../../shared/components/import-errors-dialog/import-errors-dialog';
-import { ArticleResponse } from '../model';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {inject, Injectable} from '@angular/core';
+import {MatDialog} from '@angular/material/dialog';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {exhaustMap, from, map, Observable, of, switchMap} from 'rxjs';
+import {environment} from '../../../environments/environment';
+import {ImportErrorsDialog} from '../../shared/components/import-errors-dialog/import-errors-dialog';
+import {ArticleResponse} from '../model';
 
 @Injectable({
   providedIn: 'root',
@@ -53,19 +53,23 @@ export class ArticlesApiService {
     );
   }
 
-  getArticles(): Observable<ArticleResponse[]> {
-    return this.httpClient.get<ArticleResponse[]>(this.baseUrl);
+  getArticles(searchTerm?: string): Observable<ArticleResponse[]> {
+    let params = new HttpParams();
+    if (searchTerm) {
+      params = params.set('search', searchTerm);
+    }
+    return this.httpClient.get<ArticleResponse[]>(this.baseUrl, {params});
   }
 
   checkArticleName(articleName: string) {
     return this.httpClient.get<boolean>(`${this.baseUrl}/check-article-name`, {
-      params: { articleName },
+      params: {articleName},
     });
   }
 
   checkArticleNameButExcludeCurrent(articleName: string, id: number) {
     return this.httpClient.get<boolean>(`${this.baseUrl}/check-article-name-exclude-current`, {
-      params: { articleName, id },
+      params: {articleName, id},
     });
   }
 
@@ -90,7 +94,7 @@ export class ArticlesApiService {
   writeOffArticleStock(id: number): Observable<any> {
     return this.httpClient.delete(`${this.baseUrl}/stock/${id}`);
   }
-  
+
   getAffectedBundles(id: number): Observable<string[]> {
     return this.httpClient.get<string[]>(`${this.baseUrl}/stock/${id}/affected-bundles`);
   }
@@ -102,7 +106,7 @@ export class ArticlesApiService {
     return new Observable((observer) => {
       const worker = new Worker(new URL('../../excel-parser.worker', import.meta.url));
 
-      worker.onmessage = ({ data }) => {
+      worker.onmessage = ({data}) => {
         if (data.success) {
           observer.next(data);
           observer.complete();
@@ -118,7 +122,7 @@ export class ArticlesApiService {
       };
 
       // Transferable objekat: buffer šaljemo bez kopiranja u memoriji
-      worker.postMessage({ buffer, existingNames }, [buffer]);
+      worker.postMessage({buffer, existingNames}, [buffer]);
     });
   }
 
@@ -134,12 +138,12 @@ export class ArticlesApiService {
       panel = 'snackbar-warning';
     }
 
-    this.snackBar.open(message, 'OK', { duration: 5000, panelClass: [panel] });
+    this.snackBar.open(message, 'OK', {duration: 5000, panelClass: [panel]});
   }
 
   private showImportReport(errors: any[]): void {
     this.dialog.open(ImportErrorsDialog, {
-      data: { errors },
+      data: {errors},
       width: '600px',
       maxWidth: '95vw',
       disableClose: true,

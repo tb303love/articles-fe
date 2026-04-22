@@ -55,6 +55,7 @@
       @if(showAdmissionPrices()) {
       <div class="grid-cell admission-header">Ulazna 1</div>
       <div class="grid-cell admission-header">Ulazna 2</div>
+        <div class="grid-cell admission-header">Marža</div>
       }
       <div class="grid-cell text-right">Maloprodajna cena</div>
     </div>
@@ -83,6 +84,7 @@
         @if(showAdmissionPrices()) {
         <div class="grid-cell admission-cell italic">{{row.admissionPrice1 | currency:'RSD '}}</div>
         <div class="grid-cell admission-cell italic">{{row.admissionPrice2 | currency:'RSD '}}</div>
+        <div class="grid-cell admission-cell italic">{{((row.price - row.admissionPrice1) / row.price * 100) | number:'1.2-2'}}</div>
         }
 
         <!-- Maloprodajna cena + Akcije -->

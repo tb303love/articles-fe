@@ -1,10 +1,10 @@
 import { Order, RevenueSummary } from '../../core/model';
-
+export type SalesOrderType = 'ALL' | 'ACTIVE' | 'REFUNDED' | 'RETAIL' | 'WHOLESALE'
 export interface OrderState {
   orders: Order[];
   isLoading: boolean;
   totalDailySales: RevenueSummary;
-  filterStatus: 'ALL' | 'ACTIVE' | 'REFUNDED' | 'RETAIL' | 'WHOLESALE' ;
+  filterStatus: SalesOrderType ;
 }
 
 export const initialState: OrderState = {

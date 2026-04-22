@@ -1,41 +1,48 @@
 <div class="orders-wrapper">
   <div class="orders-header">
-    <h3><mat-icon>receipt_long</mat-icon> Današnje porudžbine</h3>
-    <button mat-icon-button (click)="rightDrawer().close()"><mat-icon>close</mat-icon></button>
+    <h3>
+      <mat-icon>receipt_long</mat-icon>
+      Današnje porudžbine
+    </h3>
+    <button mat-icon-button (click)="rightDrawer().close()">
+      <mat-icon>close</mat-icon>
+    </button>
   </div>
 
-  <div class="filter-container">
-    <div class="filter-bar">
-      <span class="filter-label">Filteri po tipu porudžbine:</span>
-      <mat-button-toggle-group
-        #group="matButtonToggleGroup"
-        [value]="orderStore.filterStatus()"
-        (change)="orderStore.updateFilter($event.value)"
-      >
-        <mat-button-toggle value="ALL" title="Sve">
-          <mat-icon>list</mat-icon>
-        </mat-button-toggle>
-        <mat-button-toggle value="ACTIVE" title="Aktivne">
-          <mat-icon>check_circle</mat-icon>
-        </mat-button-toggle>
-        <mat-button-toggle value="WHOLESALE" title="Nekucane">😉</mat-button-toggle>
-        <mat-button-toggle value="RETAIL" title="Kucane">🤮</mat-button-toggle>
-        <mat-button-toggle value="REFUNDED" title="Povraćaji">
-          <mat-icon color="warn">settings_backup_restore</mat-icon>
-        </mat-button-toggle>
-      </mat-button-toggle-group>
+  @if (orderStore.orders().length) {
+    <div class="filter-container">
+      <div class="filter-bar">
+        <span class="filter-label">Filteri po tipu porudžbine:</span>
+        <mat-button-toggle-group
+          #group="matButtonToggleGroup"
+          [value]="orderStore.filterStatus()"
+          (change)="orderStore.updateFilter($event.value)"
+        >
+          <mat-button-toggle value="ALL" matTooltip="Sve">
+            <mat-icon>list</mat-icon>
+          </mat-button-toggle>
+          <mat-button-toggle value="ACTIVE" matTooltip="Aktivne">
+            <mat-icon>check_circle</mat-icon>
+          </mat-button-toggle>
+          <mat-button-toggle value="WHOLESALE" matTooltip="Nekucane">😉</mat-button-toggle>
+          <mat-button-toggle value="RETAIL" matTooltip="Kucane">🤮</mat-button-toggle>
+          <mat-button-toggle value="REFUNDED" matTooltip="Povraćaji">
+            <mat-icon color="warn">settings_backup_restore</mat-icon>
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
     </div>
-  </div>
+  }
 
   <div class="orders-list-container">
     @for (order of orderStore.filteredOrders(); track order.id) {
       <!-- SAMO OVA JEDNA LINIJA -->
-      <app-order-list-item [order]="order" />
+      <app-order-list-item [order]="order"/>
     } @empty {
-    <div class="empty-state">
-      <mat-icon>history</mat-icon>
-      <p>Nema prodaje za danas.</p>
-    </div>
+      <div class="empty-state">
+        <mat-icon>history</mat-icon>
+        <p>Nema prodaje za danas u grupi {{ orderStore.filterStatus() | salesType }}</p>
+      </div>
     }
   </div>
 
@@ -46,19 +53,19 @@
         <span>UKUPAN PROMET:</span>
         <strong class="grand-total">{{ orderStore.netDailySales() | number:'1.2-2' }} RSD</strong>
       </div>
-      
-      @if(orderStore.grossRetail() > 0) {
+
+      @if (orderStore.grossRetail() > 0) {
         <div class="summary-line">
           <span>Kucano:</span>
           <strong>{{ orderStore.grossRetail() | number:'1.2-2' }} RSD</strong>
         </div>
       }
 
-      @if(orderStore.hasRefundsToday()){
-      <!-- Mali indikator ako je bilo refundacija danas -->
-      <div class="refund-hint">
-        *Uračunati povraćaji u iznosu od {{ orderStore.totalRefunds() | number:'1.2-2' }} RSD
-      </div>
+      @if (orderStore.hasRefundsToday()) {
+        <!-- Mali indikator ako je bilo refundacija danas -->
+        <div class="refund-hint">
+          *Uračunati povraćaji u iznosu od {{ orderStore.totalRefunds() | number:'1.2-2' }} RSD
+        </div>
       }
     </div>
   </div>

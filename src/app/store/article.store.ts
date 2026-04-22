@@ -1,20 +1,12 @@
-import { HttpEventType, HttpResponse } from '@angular/common/http';
-import { computed, inject } from '@angular/core';
-import {
-  patchState,
-  signalStore,
-  withComputed,
-  withHooks,
-  withMethods,
-  withState,
-} from '@ngrx/signals';
-import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { catchError, debounceTime, EMPTY, filter, map, mergeMap, pipe, Subject, switchMap, tap } from 'rxjs';
-import { ArticleResponse, OrderType, SalesArticle } from '../core/model';
-import { ArticlesApiService } from '../core/services/articles-api-service';
-import { StockSyncService, StockUpdate } from '../core/services/stock-sync-service';
+import {HttpEventType, HttpResponse} from '@angular/common/http';
+import {computed, inject} from '@angular/core';
+import {patchState, signalStore, withComputed, withHooks, withMethods, withState,} from '@ngrx/signals';
+import {rxMethod} from '@ngrx/signals/rxjs-interop';
+import {catchError, debounceTime, distinctUntilChanged, EMPTY, filter, map, pipe, Subject, switchMap, tap} from 'rxjs';
+import {ArticleResponse, OrderType, SalesArticle} from '../core/model';
+import {ArticlesApiService} from '../core/services/articles-api-service';
+import {StockSyncService, StockUpdate} from '../core/services/stock-sync-service';
 
-// Definiši interfejs stanja
 type ArticleState = {
   articles: SalesArticle[];
   loadingStatus: {
@@ -25,6 +17,7 @@ type ArticleState = {
   };
   filterQuery: string;
   isAvailable: boolean;
+  searchTerm: string;
 };
 
 export interface CheckNamePayload {
@@ -42,12 +35,13 @@ const initialState: ArticleState = {
   },
   filterQuery: '',
   isAvailable: false,
+  searchTerm: ''
 };
 
 export const ArticleStore = signalStore(
-  { providedIn: 'root' },
+  {providedIn: 'root'},
   withState(initialState),
-  withComputed(({ articles, filterQuery }) => ({
+  withComputed(({articles, filterQuery}) => ({
     baseArticles: computed(() =>
       articles().filter((a) => !a.composition || a.composition.length === 0),
     ),
@@ -72,10 +66,10 @@ export const ArticleStore = signalStore(
       checkArticleName: rxMethod<CheckNamePayload>(
         pipe(
           tap(() =>
-            patchState(store, { loadingStatus: { ...store.loadingStatus(), checkName: true } }),
+            patchState(store, {loadingStatus: {...store.loadingStatus(), checkName: true}}),
           ),
           debounceTime(500),
-          switchMap(({ name, excludeId }) => {
+          switchMap(({name, excludeId}) => {
             const request$ = excludeId
               ? articleService.checkArticleNameButExcludeCurrent(name, excludeId)
               : articleService.checkArticleName(name);
@@ -84,12 +78,12 @@ export const ArticleStore = signalStore(
               tap((taken) => {
                 patchState(store, {
                   isAvailable: taken,
-                  loadingStatus: { ...store.loadingStatus(), checkName: false },
+                  loadingStatus: {...store.loadingStatus(), checkName: false},
                 });
               }),
               catchError(() => {
                 patchState(store, {
-                  loadingStatus: { ...store.loadingStatus(), checkName: false },
+                  loadingStatus: {...store.loadingStatus(), checkName: false},
                 });
                 return EMPTY;
               }),
@@ -98,18 +92,20 @@ export const ArticleStore = signalStore(
         ),
       ),
       updateFilter(query: string) {
-        patchState(store, { filterQuery: query });
+        patchState(store, {filterQuery: query});
       },
-      loadAll: rxMethod<void>(
+      loadAll: rxMethod<string>(
         pipe(
-          tap(() => patchState(store, { loadingStatus: { ...store.loadingStatus(), list: true } })),
-          switchMap(() =>
-            articleService.getArticles().pipe(
+          // distinctUntilChanged(),
+          tap(() => patchState(store, {loadingStatus: {...store.loadingStatus(), list: true}})),
+          switchMap((searchTerm) =>
+            articleService.getArticles('active').pipe(
               map((articles) => articles.map(mapToSalesArticle)), // Mapiramo svaki artikal na SalesArticle
               tap((articles) =>
                 patchState(store, {
                   articles,
-                  loadingStatus: { ...store.loadingStatus(), list: false },
+                  loadingStatus: {...store.loadingStatus(), list: false},
+                  searchTerm
                 }),
               ),
             ),
@@ -122,15 +118,15 @@ export const ArticleStore = signalStore(
           articles: state.articles.map((article) => {
             // 1. Pronađi SVE stavke koje se odnose na ovaj artikal (može ih biti više zbog serija)
             const relevantItems = update.items.filter((item) => item.articleId === article.id);
-      
+
             if (relevantItems.length > 0) {
               // 2. Saberi ukupnu količinu iz svih stavki (npr. 10 + 5 = 15)
               const totalQuantityInUpdate = relevantItems.reduce((sum, item) => sum + item.quantity, 0);
-      
+
               // 3. Odredi smer (Refund dodaje, Sale oduzima)
               const multiplier = update.type === OrderType.REFUND ? 1 : -1;
               const finalChange = totalQuantityInUpdate * multiplier;
-      
+
               return {
                 ...article,
                 // 4. Ažuriraj totalStock sa ukupnom sumom promene
@@ -142,7 +138,7 @@ export const ArticleStore = signalStore(
         }));
       },
       createArticle(formData: FormData) {
-        patchState(store, { loadingStatus: { ...store.loadingStatus(), saving: true } });
+        patchState(store, {loadingStatus: {...store.loadingStatus(), saving: true}});
         articleService
           .addNewArticle(formData)
           .pipe(
@@ -154,17 +150,18 @@ export const ArticleStore = signalStore(
           )
           .subscribe({
             next: () => {
-              this.loadAll();
+              patchState(store, {loadingStatus: {...store.loadingStatus(), saving: false}});
+              this.loadAll(store.searchTerm);
               operationSuccessSubject.next();
             },
             error: (err) => {
-              patchState(store, { loadingStatus: { ...store.loadingStatus(), saving: false } });
+              patchState(store, {loadingStatus: {...store.loadingStatus(), saving: false}});
               console.error('Create error:', err);
             },
           });
       },
       updateArticle(id: number, formData: FormData) {
-        patchState(store, { loadingStatus: { ...store.loadingStatus(), saving: true } });
+        patchState(store, {loadingStatus: {...store.loadingStatus(), saving: true}});
         articleService
           .updateArticle(id, formData)
           .pipe(
@@ -175,47 +172,47 @@ export const ArticleStore = signalStore(
             map((event) => event.body as ArticleResponse),
           )
           .subscribe({
-            next: (response) => {
-              this.loadAll();
-              patchState(store, (state) => ({
-                loadingStatus: { ...store.loadingStatus(), saving: false },
+            next: () => {
+              patchState(store, () => ({
+                loadingStatus: {...store.loadingStatus(), saving: false},
               }));
+              this.loadAll(store.searchTerm);
               operationSuccessSubject.next();
             },
             error: (err) => {
-              patchState(store, { loadingStatus: { ...store.loadingStatus(), saving: false } });
+              patchState(store, {loadingStatus: {...store.loadingStatus(), saving: false}});
               console.error('Update error:', err);
             },
           });
       },
       deleteArticle(id: number) {
-        patchState(store, { loadingStatus: { ...store.loadingStatus(), saving: true } });
+        patchState(store, {loadingStatus: {...store.loadingStatus(), saving: true}});
         articleService.deleteArticle(id).subscribe({
           next: () => {
             patchState(store, (state) => ({
               articles: state.articles.filter((a) => a.id !== id),
-              loadingStatus: { ...store.loadingStatus(), saving: false },
+              loadingStatus: {...store.loadingStatus(), saving: false},
             }));
             operationSuccessSubject.next();
           },
           error: (err: any) => {
-            patchState(store, { loadingStatus: { ...store.loadingStatus(), saving: false } });
+            patchState(store, {loadingStatus: {...store.loadingStatus(), saving: false}});
             console.error('Delete error:', err);
           },
         });
       },
       writeOffArticleStock(id: number) {
-        patchState(store, { loadingStatus: { ...store.loadingStatus(), writeOff: true } });
+        patchState(store, {loadingStatus: {...store.loadingStatus(), writeOff: true}});
         articleService.writeOffArticleStock(id).subscribe({
           next: () => {
             patchState(store, (state) => ({
               articles: state.articles.filter((a) => a.id !== id),
-              loadingStatus: { ...store.loadingStatus(), writeOff: false },
+              loadingStatus: {...store.loadingStatus(), writeOff: false},
             }));
             operationSuccessSubject.next();
           },
           error: (err: any) => {
-            patchState(store, { loadingStatus: { ...store.loadingStatus(), writeOff: false } });
+            patchState(store, {loadingStatus: {...store.loadingStatus(), writeOff: false}});
             console.error('Write off error:', err);
           },
         });
@@ -224,7 +221,9 @@ export const ArticleStore = signalStore(
   }),
   withHooks({
     onInit(store, stockSync = inject(StockSyncService)) {
-      stockSync.stockUpdate$.pipe(map(() => store.loadAll())).subscribe();
+      stockSync.stockUpdate$.subscribe(() => {
+        store.loadAll(store.searchTerm()); // Važno: searchTerm mora biti pozvan kao funkcija ()
+      });
     },
   }),
 );

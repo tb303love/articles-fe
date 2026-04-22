@@ -1,7 +1,7 @@
-import { computed } from '@angular/core';
-import { signalStoreFeature, type, withComputed } from '@ngrx/signals';
-import { Order } from '../../core/model';
-import { OrderState } from './order.state';
+import {computed} from '@angular/core';
+import {signalStoreFeature, type, withComputed} from '@ngrx/signals';
+import {Order} from '../../core/model';
+import {OrderState} from './order.state';
 
 // Pomoćna funkcija: sada je jasnija jer storno uvek pokriva 100% količine
 const isFullyRefunded = (order: Order): boolean => {

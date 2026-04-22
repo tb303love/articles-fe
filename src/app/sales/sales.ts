@@ -1,39 +1,39 @@
-import { CommonModule } from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {
-    Component,
-    DestroyRef,
-    ElementRef,
-    HostListener,
-    OnInit,
-    effect,
-    inject,
-    model,
-    signal,
-    untracked,
-    viewChild,
+  Component,
+  DestroyRef,
+  effect,
+  ElementRef,
+  HostListener,
+  inject,
+  model,
+  OnInit,
+  signal,
+  untracked,
+  viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {FormsModule} from '@angular/forms';
 
 // Material & Lokalni importi
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list';
-import { MatSidenavModule } from '@angular/material/sidenav';
+import {MatButtonModule} from '@angular/material/button';
+import {MatCardModule} from '@angular/material/card';
+import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatIconModule} from '@angular/material/icon';
+import {MatInputModule} from '@angular/material/input';
+import {MatListModule} from '@angular/material/list';
+import {MatSidenavModule} from '@angular/material/sidenav';
 
-import { CartList } from '../cart-list/cart-list';
-import { OrderType, SalesArticle, SelectedSalesArticle } from '../core/model';
-import { AuthService } from '../core/services/auth-service';
-import { SalesService } from '../core/services/sales-service';
-import { StockSyncService } from '../core/services/stock-sync-service';
-import { OrdersList } from '../orders-list/orders-list';
-import { LongPressDirective } from '../shared/directives';
-import { ImageDomSanitizerPipe } from '../shared/pipes/image-dom-sanitizer';
-import { ArticleStore } from '../store/article.store';
-import { OrderStore } from '../store/order/order.store';
+import {CartList} from '../cart-list/cart-list';
+import {OrderType, SalesArticle, SelectedSalesArticle} from '../core/model';
+import {AuthService} from '../core/services/auth-service';
+import {SalesService} from '../core/services/sales-service';
+import {StockSyncService} from '../core/services/stock-sync-service';
+import {OrdersList} from '../orders-list/orders-list';
+import {LongPressDirective} from '../shared/directives';
+import {ImageDomSanitizerPipe} from '../shared/pipes/image-dom-sanitizer';
+import {ArticleStore} from '../store/article.store';
+import {OrderStore} from '../store/order/order.store';
 
 @Component({
   selector: 'app-sales',
@@ -173,7 +173,7 @@ export class Sales implements OnInit {
   placeOrder() {
     const saleType = this.printReceipt() ? OrderType.RETAIL : OrderType.WHOLESALE;
     const isGratis = this.isGratis();
-    
+
     const items = [...this.salesService.selectedArticles().values()].map((a) => ({
       articleId: a.id,
       quantity: a.quantity,
@@ -181,11 +181,11 @@ export class Sales implements OnInit {
 
     this.orderStore.createOrder({ items, type: saleType, isGratis });
   }
-  
+
   generateReport() {
     this.orderStore.generateReport();
   }
-  
+
   generateMonthlyReport() {
     this.orderStore.generateMonthlyReport();
   }
@@ -200,7 +200,7 @@ export class Sales implements OnInit {
   }
 
   private loadInitialData() {
-    this.articlesStore.loadAll();
+    this.articlesStore.loadAll('');
     this.orderStore.getTodayOrders();
     this.orderStore.getTodayRevenue();
   }

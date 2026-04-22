@@ -1,12 +1,12 @@
-import { Injector } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { EMPTY, Observable, of } from 'rxjs';
-import { filter, map, switchMap, tap } from 'rxjs/operators';
-import { ImportConfirmDialog } from '../../import-confirm-dialog/import-confirm-dialog';
-import { ArticleStore } from '../../store/article.store';
-import { FileActionHandler } from '../model';
-import { ArticlesApiService } from '../services/articles-api-service';
-import { FileReaderService } from '../services/file-reader';
+import {Injector} from '@angular/core';
+import {MatDialog} from '@angular/material/dialog';
+import {Observable, of} from 'rxjs';
+import {map, switchMap, tap} from 'rxjs/operators';
+import {ImportConfirmDialog} from '../../import-confirm-dialog/import-confirm-dialog';
+import {ArticleStore} from '../../store/article.store';
+import {FileActionHandler} from '../model';
+import {ArticlesApiService} from '../services/articles-api-service';
+import {FileReaderService} from '../services/file-reader';
 
 /**
  * Factory funkcija koja kreira handler za uvoz artikala.
@@ -35,7 +35,7 @@ export const createExcelImportHandler = (injector: Injector): FileActionHandler 
         switchMap((confirmed) => {
           if (confirmed) {
             return api.executeBulkImport(file).pipe(
-              tap(() => store.loadAll()),
+              tap(() => store.loadAll('')),
               map(() => true),
             );
           }

@@ -2,7 +2,7 @@ import { AddArticleFormControls } from "../../core/model/article-form.model";
 
 export function mapFormControlsToFormData(controls: AddArticleFormControls): FormData {
   const formData = new FormData();
-  
+
   const toLocalYMD = (date: any) => {
     if (!(date instanceof Date)) return null;
     const year = date.getFullYear();
@@ -15,6 +15,7 @@ export function mapFormControlsToFormData(controls: AddArticleFormControls): For
   const articleRequest = {
     name: controls.name.value,
     price: controls.price.value,
+    active: controls.active.value,
     admissionPrice1: controls.admissionPrice1.value,
     admissionPrice2: controls.admissionPrice2.value,
     categoryName: controls.category.value,
@@ -37,7 +38,7 @@ export function mapFormControlsToFormData(controls: AddArticleFormControls): For
   );
 
   // PAŽNJA: Proveri da li u Java Controlleru stoji @RequestPart("dto") ili @RequestPart("article")
-  formData.append('article', articleBlob); 
+  formData.append('article', articleBlob);
 
   const imageFile = controls.image.value;
   if (imageFile) {

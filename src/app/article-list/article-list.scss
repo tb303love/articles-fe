@@ -38,12 +38,12 @@ $header-actions-height: 76px;
   /* Naziv(350) + Tip(120) + Zaliha(100) + Admission(Var) + Cena(250) */
   grid-template-columns: repeat(4, 1fr);
   align-items: center;
-  padding: 0; 
-  min-width: 1100px; 
+  padding: 0;
+  min-width: 1100px;
   width: 100%;
-  
+
   &.show-addmission-prices {
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(7, 1fr);
   }
 }
 
@@ -54,12 +54,12 @@ $header-actions-height: 76px;
   font-weight: 600;
   color: #444;
   /* REZERVIŠE PROSTOR ZA SKROL BAR DA SE PORAVNA SA TELOM */
-  scrollbar-gutter: stable; 
-  overflow-y: scroll; 
-  
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
+
   // Sakrivamo vizuelno skrol bar u headeru ali čuvamo njegov prostor
   &::-webkit-scrollbar { width: 8px; background: transparent; }
-  
+
   .grid-cell {
     border-bottom: none;
     text-transform: uppercase;
@@ -73,7 +73,7 @@ $header-actions-height: 76px;
   width: 100%;         // Zauzima svu širinu ćelije
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis; 
+  text-overflow: ellipsis;
 }
 
 .article-viewport {
@@ -82,12 +82,12 @@ $header-actions-height: 76px;
   outline: none;
   overflow-y: auto;
   overflow-x: hidden; // Isključeno ovde da ne pravi dupli skrol
-  
+
   @include scrollbar-gutter;
 }
 
 .grid-cell {
-  padding: 0 16px; 
+  padding: 0 16px;
   height: 100%;
   display: flex;
   align-items: center;
@@ -95,7 +95,7 @@ $header-actions-height: 76px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  
+
   /* Stil za Admission kolone (sakrivanje sadržaja kad je širina 0) */
   &.admission-cell, &.admission-header {
     background-color: rgba(0, 0, 0, 0.015);
@@ -107,7 +107,7 @@ $header-actions-height: 76px;
 .article-viewport .grid-row {
   height: 76px; // IDENTIČNO itemSize-u
   border-bottom: 1px solid #f0f0f0;
-  
+
   &:hover {
     background-color: #f9f9f9;
     .icon-buttons { visibility: visible; opacity: 1; }

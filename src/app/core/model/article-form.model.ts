@@ -18,6 +18,7 @@ export type ComponentFormGroup = FormGroup<{
 export interface AddArticleFormControls {
   name: FormControl<string>;
   price: FormControl<number>;
+  active: FormControl<boolean>;
   admissionPrice1: FormControl<number>;
   admissionPrice2: FormControl<number>;
   initialStocks: FormArray<StockFormGroup>;

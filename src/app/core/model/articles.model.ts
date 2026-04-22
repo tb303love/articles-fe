@@ -4,11 +4,13 @@ export interface ArticleImage {
   originalName: string;
   fileType: string;
 }
+
 export interface StockRequest {
   quantity: number;
   expirationDate: string; // ISO format (yyyy-MM-dd)
   batchNumber: string;
 }
+
 export interface ArticleCategory {
   id: number;
   categoryName: {
@@ -27,7 +29,7 @@ export type SelectedSalesArticle = Omit<
   'category' | 'image' | 'admissionPrice1' | 'admissionPrice2'
 > & {
   // Ovde dodajemo quantity ako ti je potreban za trenutni odabir u korpi
-  quantity: number; 
+  quantity: number;
 };
 
 
@@ -45,6 +47,7 @@ export interface ArticleResponse {
   price: number;
   admissionPrice1: number;
   admissionPrice2: number;
+  active:boolean;
   totalStock: number; // Suma svih serija (umesto availableStock)
   stocks: ArticleStock[]; // NOVO: Ovde stižu rokovi sa backenda
   image: ArticleImage | null;
@@ -72,6 +75,11 @@ export interface StockRequest {
   batchNumber: string;
 }
 
+export interface ArticleRequestComponent {
+  componentId: number;
+  quantity: number;
+}
+
 export interface ArticleRequest {
   name: string;
   price: number;
@@ -79,5 +87,5 @@ export interface ArticleRequest {
   admissionPrice2: number;
   categoryName: string;
   initialStocks: StockRequest[]; // Lista serija
-  components: any[]; 
+  components: ArticleRequestComponent[];
 }

@@ -1,48 +1,38 @@
-import { CommonModule } from '@angular/common';
+import {CommonModule} from '@angular/common';
+import {ChangeDetectorRef, Component, computed, DestroyRef, inject, Injector, OnDestroy, signal,} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {FormArray, ReactiveFormsModule, Validators} from '@angular/forms';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
+import {MatButtonModule} from '@angular/material/button';
+import {MatCheckboxModule} from '@angular/material/checkbox';
+import {MatNativeDateModule, provideNativeDateAdapter} from '@angular/material/core';
+import {MatDatepickerModule} from '@angular/material/datepicker';
+import {MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef,} from '@angular/material/dialog';
+import {MatDividerModule} from '@angular/material/divider';
+import {MatExpansionModule} from '@angular/material/expansion';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatIconModule} from '@angular/material/icon';
+import {MatInputModule} from '@angular/material/input';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {filter, tap} from 'rxjs';
+import {FileBrowserData, SalesArticle} from '../../../core/model';
+import {ArticleFormGroup} from '../../../core/model/article-form.model';
+import {ArticlesApiService} from '../../../core/services/articles-api-service';
+import {CategoryApiService} from '../../../core/services/category-api-service';
+import {FileReaderService} from '../../../core/services/file-reader';
+import {createImageUploadHandler} from '../../../core/utils/file-handlers';
+import {ArticleStore} from '../../../store/article.store';
+import {CategoryStore} from '../../../store/category.store';
+import {FloatInputDirective} from '../../directives';
+import {mapFormControlsToFormData} from '../../mappers/mapArticleControlsToFormData';
+import {FileBrowser} from '../file-browser/file-browser';
+import initializeForm, {createComponentGroup, createStockGroup} from './add-article-form-logic';
 import {
-  ChangeDetectorRef,
-  Component,
-  computed,
-  DestroyRef,
-  inject,
-  Injector,
-  OnDestroy,
-  signal,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatNativeDateModule, provideNativeDateAdapter } from '@angular/material/core';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import {
-  MAT_DIALOG_DATA,
-  MatDialog,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { filter, tap } from 'rxjs';
-import { FileBrowserData, SalesArticle } from '../../../core/model';
-import { ArticleFormGroup } from '../../../core/model/article-form.model';
-import { ArticlesApiService } from '../../../core/services/articles-api-service';
-import { CategoryApiService } from '../../../core/services/category-api-service';
-import { FileReaderService } from '../../../core/services/file-reader';
-import { createImageUploadHandler } from '../../../core/utils/file-handlers';
-import { ArticleStore } from '../../../store/article.store';
-import { CategoryStore } from '../../../store/category.store';
-import { FloatInputDirective } from '../../directives/float-input-directive';
-import { mapFormControlsToFormData } from '../../mappers/mapArticleControlsToFormData';
-import { FileBrowser } from '../file-browser/file-browser';
-import initializeForm, { createComponentGroup, createStockGroup } from './add-article-form-logic';
-import { StockWriteOffWarningDialog, WriteOffWarningData } from '../stock-write-off-warning-dialog/stock-write-off-warning-dialog';
+  StockWriteOffWarningDialog,
+  WriteOffWarningData
+} from '../stock-write-off-warning-dialog/stock-write-off-warning-dialog';
+import {MatSlideToggle} from '@angular/material/slide-toggle';
 
 @Component({
   selector: 'app-add-article-dialog',
@@ -66,6 +56,7 @@ import { StockWriteOffWarningDialog, WriteOffWarningData } from '../stock-write-
     MatDividerModule,
     MatProgressSpinnerModule,
     FloatInputDirective,
+    MatSlideToggle,
   ],
   providers: [CategoryApiService, provideNativeDateAdapter()],
 })
@@ -86,22 +77,22 @@ export class AddArticleDialog implements OnDestroy {
   protected readonly formReady = signal(false);
   protected readonly imagePreview = this.fileReaderService.imagePreview;
   isEditMode = computed(() => !!this.dialogData?.id);
-  
+
   // Unutar klase komponente:
   private readonly categorySearchTerm = signal<string>('');
-  
+
   // Computed lista koja filtrira kategorije na osnovu onoga što je ukucano
   filteredCategories = computed(() => {
     const term = this.categorySearchTerm().toLowerCase();
     const allCategories = this.categoryStore.sortedNames(); // tvoj postojeći signal
-    
+
     if (!term) return allCategories;
-    
-    return allCategories.filter(cat => 
+
+    return allCategories.filter(cat =>
       cat.toLowerCase().includes(term)
     );
   });
-  
+
   protected onCategoryTyping(event: Event) {
     const input = event.target as HTMLInputElement;
     this.categorySearchTerm.set(input.value);
@@ -126,7 +117,7 @@ export class AddArticleDialog implements OnDestroy {
       .getFile()
       .pipe(
         filter((dto) => dto.state === 'loaded'),
-        tap(({ image, event }) => {
+        tap(({image, event}) => {
           if (event === 'load') {
             this.newArticleForm = initializeForm(
               this.dialogData,
@@ -141,7 +132,7 @@ export class AddArticleDialog implements OnDestroy {
 
             this.formReady.set(true);
           } else {
-            this.newArticleForm.patchValue({ image }, { emitEvent: true });
+            this.newArticleForm.patchValue({image}, {emitEvent: true});
           }
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -152,7 +143,7 @@ export class AddArticleDialog implements OnDestroy {
   protected checkAndWriteOff(stock: any) {
     // Pozivamo endpoint koji smo napravili u ArticleStore-u / Servisu
     this.articleService.getAffectedBundles(stock.id).subscribe(affectedBundles => {
-      
+
       const dialogRef = this.dialog.open(StockWriteOffWarningDialog, {
         width: '450px',
         autoFocus: false,
@@ -161,13 +152,13 @@ export class AddArticleDialog implements OnDestroy {
           stockQuantity: stock.quantity
         } as WriteOffWarningData
       });
-  
+
       dialogRef.afterClosed().pipe(
         filter(confirmed => !!confirmed)
       ).subscribe(() => {
         // Izvršavamo brisanje na backendu
         this.articleStore.writeOffArticleStock(stock.id);
-        
+
         // Lokalno ažuriramo listu da korisnik odmah vidi promenu
         if (this.dialogData) {
           this.dialogData.stocks = this.dialogData.stocks.filter(s => s.id !== stock.id);
@@ -275,7 +266,7 @@ export class AddArticleDialog implements OnDestroy {
   protected removeImage(event: Event) {
     event.stopPropagation();
     this.fileReaderService.removeImage();
-    this.newArticleForm.patchValue({ image: null });
+    this.newArticleForm.patchValue({image: null});
   }
 
   ngOnDestroy() {
