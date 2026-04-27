@@ -3,7 +3,7 @@ import { FormArray, FormControl, FormGroup } from '@angular/forms';
 // Tip za jednu stavku zaliha (Stock Batch)
 export type StockFormGroup = FormGroup<{
   quantity: FormControl<number>;
-  expirationDate: FormControl<Date | null>;
+  expirationDate: FormControl<string | null>;
   batchNumber: FormControl<string | null>;
 }>;
 

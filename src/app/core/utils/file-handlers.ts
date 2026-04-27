@@ -50,7 +50,7 @@ export const createExcelImportHandler = (injector: Injector): FileActionHandler 
  * Primer drugog handlera (npr. za slike artikala)
  */
 export const createImageUploadHandler = (injector: Injector): FileActionHandler => ({
-  extensions: ['.jpg', '.png', '.webp'],
+  extensions: ['.jpg', '.png', '.webp', '.jpeg', '.bmp'],
   label: 'Slika artikla',
   icon: 'image',
   color: '#1a237e',

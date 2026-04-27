@@ -1,7 +1,7 @@
 import {CommonModule} from '@angular/common';
 import {ChangeDetectorRef, Component, computed, DestroyRef, inject, Injector, OnDestroy, signal,} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {FormArray, ReactiveFormsModule, Validators} from '@angular/forms';
+import {FormArray, ReactiveFormsModule} from '@angular/forms';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCheckboxModule} from '@angular/material/checkbox';
@@ -15,23 +15,21 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {filter, tap} from 'rxjs';
+import {filter, map, tap} from 'rxjs';
 import {FileBrowserData, SalesArticle} from '../../../core/model';
 import {ArticleFormGroup} from '../../../core/model/article-form.model';
-import {ArticlesApiService} from '../../../core/services/articles-api-service';
 import {FileReaderService} from '../../../core/services/file-reader';
 import {createImageUploadHandler} from '../../../core/utils/file-handlers';
-import {ArticleStore} from '../../../store/article/article.store';
+import {ArticleStore} from '../../../store';
 import {CategoryStore} from '../../../store/category.store';
 import {FloatInputDirective} from '../../directives';
 import {mapFormControlsToFormData} from '../../mappers/mapArticleControlsToFormData';
 import {FileBrowser} from '../file-browser/file-browser';
-import initializeForm, {createComponentGroup, createStockGroup, newBarCodeField} from './add-article-form-logic';
-import {
-  StockWriteOffWarningDialog,
-  WriteOffWarningData
-} from '../stock-write-off-warning-dialog/stock-write-off-warning-dialog';
+import initializeForm, {newBarCodeField} from './add-article-form-logic';
 import {MatSlideToggle} from '@angular/material/slide-toggle';
+import {BundleComponents} from './bundle-components/bundle-components';
+import {InitialStocks} from './initial-stocks/initial-stocks';
+import {mergeMap} from 'rxjs/operators';
 
 @Component({
   selector: 'app-add-article-dialog',
@@ -56,6 +54,9 @@ import {MatSlideToggle} from '@angular/material/slide-toggle';
     MatProgressSpinnerModule,
     FloatInputDirective,
     MatSlideToggle,
+    BundleComponents,
+    InitialStocks,
+
   ],
   providers: [provideNativeDateAdapter()],
 })
@@ -69,7 +70,6 @@ export class AddArticleDialog implements OnDestroy {
   private readonly dialog = inject(MatDialog);
   private readonly injector = inject(Injector);
   protected readonly categoryStore = inject(CategoryStore);
-  private articleService = inject(ArticlesApiService);
 
   // Signali
   protected readonly isBundle = signal(false);
@@ -120,7 +120,7 @@ export class AddArticleDialog implements OnDestroy {
       .getFile()
       .pipe(
         filter((dto) => dto.state === 'loaded'),
-        tap(({image, event}) => {
+        map(({image, event}) => {
           if (event === 'load') {
             this.newArticleForm = initializeForm(
               this.dialogData,
@@ -134,88 +134,17 @@ export class AddArticleDialog implements OnDestroy {
             }
 
             this.formReady.set(true);
+
           } else {
             this.newArticleForm.patchValue({image}, {emitEvent: true});
           }
+          return true;
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => this.cdr.detectChanges());
-  }
-
-  protected checkAndWriteOff(stock: any) {
-    // Pozivamo endpoint koji smo napravili u ArticleStore-u / Servisu
-    this.articleService.getAffectedBundles(stock.id).subscribe(affectedBundles => {
-
-      const dialogRef = this.dialog.open(StockWriteOffWarningDialog, {
-        width: '450px',
-        autoFocus: false,
-        data: {
-          affectedBundles: affectedBundles,
-          stockQuantity: stock.quantity
-        } as WriteOffWarningData
+      .subscribe((changes) => {
+        this.cdr.detectChanges()
       });
-
-      dialogRef.afterClosed().pipe(
-        filter(confirmed => !!confirmed)
-      ).subscribe(() => {
-        // Izvršavamo brisanje na backendu
-        this.articleStore.writeOffArticleStock(stock.id);
-
-        // Lokalno ažuriramo listu da korisnik odmah vidi promenu
-        if (this.dialogData) {
-          this.dialogData.stocks = this.dialogData.stocks.filter(s => s.id !== stock.id);
-        }
-      });
-    });
-  }
-
-
-  // Dodavanje nove prazne komponente u niz
-  protected addComponent() {
-    if (this.components) {
-      // createComponentGroup smo uvezli iz tvog add-article-form-logic
-      this.components.push(createComponentGroup(this.articleStore));
-      this.cdr.detectChanges();
-    }
-  }
-
-  // Brisanje komponente po indeksu
-  protected removeComponent(index: number) {
-    this.components.removeAt(index);
-  }
-
-  // Logika za autocomplete pretragu artikala koji mogu biti komponente
-  protected getFilteredArticles(index: number) {
-    // Uzimamo trenutnu vrednost iz polja 'name' za tu komponentu
-    const control = this.components.at(index).get('name');
-    const searchValue = (control?.value || '').toString().toLowerCase();
-
-    return this.articleStore.articles().filter(
-      (art) =>
-        // 1. Naziv se poklapa
-        art.name.toLowerCase().includes(searchValue) &&
-        // 2. Ne dozvoljavamo da artikal sadrži samog sebe (ako je u Edit modu)
-        art.id !== this.dialogData?.id &&
-        // 3. Ne nudimo druge artikle koji su već Bundle (da izbegnemo preveliku dubinu)
-        (art.composition === null || art.composition.length === 0),
-    );
-  }
-
-  // Kada korisnik klikne na artikal iz autocomplete liste
-  protected onComponentSelected(event: any, index: number) {
-    const selectedName = event.option.value;
-    const article = this.articleStore.articles().find((a) => a.name === selectedName);
-
-    if (article) {
-      const group = this.components.at(index);
-      // Upisujemo ID koji je ključan za slanje na backend
-      group.get('componentId')?.setValue(article.id);
-
-      // Opciono: Ažuriramo validaciju da količina ne može biti veća od dostupne u magacinu
-      group.get('quantity')?.setValidators([Validators.required, Validators.min(1)]);
-      group.get('quantity')?.updateValueAndValidity();
-    }
   }
 
   onSubmit() {
@@ -246,25 +175,16 @@ export class AddArticleDialog implements OnDestroy {
 
   protected toggleBundle(checked: boolean) {
     this.isBundle.set(checked);
+
     if (checked) {
-      // Ako postane bundle, očisti sve započete unose zaliha
-      this.initialStocks.clear();
+      this.components.enable();      // Omogući komponente
+      this.initialStocks.disable();  // Onemogući zalihe (neće biti u .value)
     } else {
-      // Ako prestane da bude bundle, očisti komponente
-      this.components.clear();
+      this.components.disable();     // Onemogući komponente
+      this.initialStocks.enable();   // Omogući zalihe
     }
   }
 
-  protected addStock() {
-    if (this.initialStocks) {
-      this.initialStocks.push(createStockGroup());
-      this.cdr.detectChanges(); // Forsiraj osvežavanje HTML-a
-    }
-  }
-
-  protected removeStock(index: number) {
-    this.initialStocks.removeAt(index);
-  }
 
   protected removeImage(event: Event) {
     event.stopPropagation();

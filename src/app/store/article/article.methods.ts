@@ -1,6 +1,6 @@
 import {patchState, signalStoreFeature, type, withMethods} from '@ngrx/signals';
 import {ArticleState, CheckNamePayload} from './article.state';
-import {computed, inject} from '@angular/core';
+import {computed, inject, Injector} from '@angular/core';
 import {ArticlesApiService} from '../../core/services/articles-api-service';
 import {catchError, debounceTime, EMPTY, filter, map, pipe, Subject, switchMap, tap} from 'rxjs';
 import {rxMethod} from '@ngrx/signals/rxjs-interop';
@@ -10,8 +10,9 @@ import {HttpEventType, HttpResponse} from '@angular/common/http';
 export function withArticleMethods() {
   const operationSuccessSubject = new Subject<void>();
   return signalStoreFeature(
-    { state: type<ArticleState>() },
-    withMethods((store, articleService = inject(ArticlesApiService)) => {
+    {state: type<ArticleState>()},
+    withMethods((store, injector = inject(Injector)) => {
+      const articleService = injector.get(ArticlesApiService);
       return {
         operationSuccess$() {
           return operationSuccessSubject.asObservable();
@@ -68,7 +69,7 @@ export function withArticleMethods() {
                 ),
               ),
             ),
-          ),
+          ), {injector},
         ),
         createArticle(formData: FormData) {
           patchState(store, {loadingStatus: {...store.loadingStatus(), saving: true}});

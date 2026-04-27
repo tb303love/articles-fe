@@ -1,7 +1,7 @@
-// web-socket.service.ts
 import {Injectable} from '@angular/core';
 import {RxStomp} from '@stomp/rx-stomp';
 import {map} from 'rxjs/operators';
+import {environment} from '../../../environments/environment';
 
 @Injectable({providedIn: 'root'})
 export class WebSocketService {
@@ -9,7 +9,7 @@ export class WebSocketService {
 
   constructor() {
     this.rxStomp.configure({
-      brokerURL: 'ws://localhost:4200/ws-barcode', // Tvoj port
+      brokerURL: environment.webSocketUrl,
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,

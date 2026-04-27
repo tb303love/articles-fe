@@ -125,145 +125,14 @@
               <mat-checkbox
                 (change)="toggleBundle($event.checked)"
                 [checked]="isBundle()"
-                [disabled]="(isEditMode() && (dialogData?.stocks?.length || 0) > 0) || (newArticleForm && initialStocks.length > 0)"
               >
                 Ovo je Bundle (Paket)
               </mat-checkbox>
             </div>
-
-            <!-- POSTOJEĆE ZALIHE -->
-            @if (isEditMode() && !isBundle() && (dialogData?.stocks?.length ?? 0) > 0) {
-              <mat-expansion-panel class="history-panel mb-3">
-                <mat-expansion-panel-header>
-                  <mat-panel-title>Trenutno stanje ({{ dialogData?.stocks?.length }})</mat-panel-title>
-                  <mat-panel-description
-                  >Ukupno: {{ dialogData?.totalStock }} kom
-                  </mat-panel-description
-                  >
-                </mat-expansion-panel-header>
-                <div class="history-panel-header">
-                  <h4>Količina</h4>
-                  <h4>Rok</h4>
-                  <h4>Serija</h4>
-                  <h4></h4>
-                </div>
-                <mat-divider/>
-                <div class="history-list">
-                  @for (s of dialogData?.stocks; track s.id) {
-                    <div class="history-row">
-                      <span><strong>{{ s.quantity }}</strong> kom</span>
-                      <span>{{ (s.expirationDate| date: 'dd.MM.yyyy') || 'Nema roka' }}</span>
-                      <span>{{ s.batchNumber || 'Nema' }}</span>
-                      <button type="button" mat-icon-button color="warn" (click)="checkAndWriteOff(s)">
-                        <mat-icon>delete</mat-icon>
-                      </button>
-                    </div>
-                  }
-                </div>
-              </mat-expansion-panel>
-            }
-
             <!-- SEKCIJA ZA KOMPONENTE BUNDLE-A -->
-            @if (isBundle()) {
-              <div class="bundle-components-section mt-3">
-                <div class="section-header">
-                  <h4>
-                    <mat-icon>layers</mat-icon>
-                    Sastav paketa (Komponente)
-                  </h4>
-                  <button mat-stroked-button color="primary" type="button" (click)="addComponent()"
-                          [disabled]="components.invalid">
-                    <mat-icon>add</mat-icon>
-                    Dodaj komponentu
-                  </button>
-                </div>
-
-                @if (components.length > 0) {
-                  <div formArrayName="components" class="components-list mt-2">
-                    <div class="history-row header mb-2">
-                      <span>Artikal (Komponenta)</span>
-                      <span>Količina u paketu</span>
-                      <span></span>
-                    </div>
-
-                    @for (comp of components.controls; track $index) {
-                      <div [formGroupName]="$index" class="component-row">
-                        <!-- Autocomplete za izbor artikla -->
-                        <mat-form-field appearance="outline" class="flex-grow">
-                          <mat-label>Izaberi artikal</mat-label>
-                          <input matInput formControlName="name" [matAutocomplete]="autoComp"/>
-                          <mat-autocomplete
-                            #autoComp="matAutocomplete"
-                            (optionSelected)="onComponentSelected($event, $index)"
-                          >
-                            @for (art of getFilteredArticles($index); track art.id) {
-                              <mat-option [value]="art.name">
-                                {{ art.name }} (Na stanju: {{ art.totalStock }})
-                              </mat-option>
-                            }
-                          </mat-autocomplete>
-                        </mat-form-field>
-
-                        <!-- Količina tog artikla u bundle-u -->
-                        <mat-form-field appearance="outline" class="small-field">
-                          <mat-label>Količina</mat-label>
-                          <input matInput type="number" formControlName="quantity"/>
-                        </mat-form-field>
-
-                        <button
-                          mat-icon-button
-                          color="warn"
-                          type="button"
-                          (click)="removeComponent($index)"
-                        >
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      </div>
-                    }
-                  </div>
-                } @else {
-                  <p class="empty-stock-msg">Dodajte artikle koji čine ovaj paket.</p>
-                }
-              </div>
-            }
+            <app-bundle-components [dialogData]="dialogData" [hidden]="!isBundle()"/>
             <!-- NOVI ULAZ ROBE -->
-            @if (!isBundle()) {
-              <div class="new-entry-section">
-                <div class="section-header">
-                  <h4>Novi ulaz robe</h4>
-                  <button mat-stroked-button color="primary" type="button" (click)="addStock()"
-                          [disabled]="initialStocks.invalid">
-                    <mat-icon>add</mat-icon>
-                    Dodaj ulaz
-                  </button>
-                </div>
-                <div formArrayName="initialStocks">
-                  @for (stock of initialStocks.controls; track $index) {
-                    <div [formGroupName]="$index" class="stock-row">
-                      <mat-form-field appearance="outline" class="small-field">
-                        <input matInput type="number" formControlName="quantity" placeholder="Kom"/>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline">
-                        <input
-                          matInput
-                          [matDatepicker]="p"
-                          formControlName="expirationDate"
-                          placeholder="Rok"
-                        />
-                        <mat-datepicker-toggle matSuffix [for]="p"/>
-                        <mat-datepicker #p/>
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="small-field">
-                        <input matInput type="text" formControlName="batchNumber" placeholder="LOT"/>
-                      </mat-form-field>
-                      <button mat-icon-button color="warn" type="button" (click)="removeStock($index)">
-                        <mat-icon>delete</mat-icon>
-                      </button>
-                    </div>
-                  }
-                </div>
-              </div>
-            }
+            <app-initial-stocks [hidden]="isBundle()"/>
           </div>
         </div>
       </mat-dialog-content>

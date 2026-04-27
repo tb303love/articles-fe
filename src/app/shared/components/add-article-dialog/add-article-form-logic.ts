@@ -7,7 +7,7 @@ import {
   ComponentFormGroup,
   StockFormGroup,
 } from '../../../core/model/article-form.model';
-import {ArticleStore} from '../../../store/article/article.store';
+import {ArticleStore} from '../../../store';
 import {
   articleNoChangesValidator,
   checkArticleName,
@@ -21,7 +21,7 @@ import {
  */
 export function createStockGroup(
   qty: number = 1,
-  expiration: Date | null = null,
+  expiration: string | null = null,
   batch: string = '',
 ): StockFormGroup {
   return new FormGroup({
@@ -63,7 +63,7 @@ export function createComponentGroup(
   });
 
   if (id) {
-    group.get('componentId')?.updateValueAndValidity({emitEvent: true});
+    group.get('componentId')?.updateValueAndValidity();
   }
 
   return group;
@@ -92,28 +92,29 @@ export default function initializeForm(
 
   const formGroup = createFormGroup(nameAsyncValidators);
 
+  console.log(formGroup);
+  console.log(article);
+
   // Ako kreiramo NOVI artikal
   if (!article) {
     return formGroup;
   }
 
-  // Ako EDITUJEMO postojeći artikal:
-
-  // 1. Inicijalno prazan niz za NOVI ulaz robe (initialStocks)
-  // Ne popunjavamo ga starim zalihama jer su one Read-Only
-  formGroup.controls.initialStocks.clear({emitEvent: false});
-
   // 2. Popunjavanje Bundle komponenti (ako je paket)
   if (article.composition && article.composition.length > 0) {
     article.composition.forEach((comp) => {
       formGroup.controls.components.push(
-        createComponentGroup(articleStore, comp.articleId, comp.quantity, comp.name),
-        {emitEvent: false}
+        createComponentGroup(articleStore, comp.articleId, comp.quantity, comp.name)
       );
     });
-    // Bundle nikada nema svoje zalihe
-    formGroup.controls.initialStocks.clear({emitEvent: false});
-    formGroup.controls.initialStocks.disable({emitEvent: false});
+  }
+
+  if(article.stocks && article.stocks.length > 0) {
+    article.stocks.forEach((stock) => {
+      formGroup.controls.initialStocks.push(
+        createStockGroup(stock.quantity, stock.expirationDate, stock.batchNumber || '')
+      );
+    });
   }
   handleBarcodes(article, formGroup);
 
@@ -126,7 +127,7 @@ export default function initializeForm(
     admissionPrice2: article.admissionPrice2,
     category: article.category,
     image,
-  }, {emitEvent: false});
+  });
 
   // Validator za detekciju promena (da li je bilo šta pipnuto)
   formGroup.addValidators(articleNoChangesValidator(article, image));

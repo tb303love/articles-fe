@@ -3,22 +3,7 @@ import {toObservable} from '@angular/core/rxjs-interop';
 import {AbstractControl, AsyncValidatorFn, FormArray, ValidationErrors, ValidatorFn} from '@angular/forms';
 import {filter, map, of, take} from 'rxjs';
 import {SalesArticle} from '../core/model';
-import {ArticleStore} from '../store/article/article.store';
-
-const floatRegex = /^\d*(\.\d+)?$/;
-
-export function floatValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const value = control.value;
-
-    if (value === null || value === undefined || value === '') {
-      return null; // Don't validate empty values
-    }
-
-    const isPositiveFloat = floatRegex.test(value) && parseFloat(value) >= 0;
-    return isPositiveFloat ? null : {invalidFloat: {value: value}};
-  };
-}
+import {ArticleStore} from '../store';
 
 export function validateImage(control: AbstractControl<File>): ValidationErrors | null {
   if (!control.value) {
@@ -63,27 +48,59 @@ export function articleNoChangesValidator(
       formValue.price !== initialArticle.price ||
       formValue.admissionPrice1 !== initialArticle.admissionPrice1 ||
       formValue.admissionPrice2 !== initialArticle.admissionPrice2 ||
-      formValue.category !== initialArticle.category ||
-      formValue.composition !== initialArticle.composition;
+      formValue.category !== initialArticle.category;
 
     // 2. Provera slike
     const imageChanged = formValue.image !== initialFile;
-
-    // 3. Provera zaliha (poređenje nizova objekata)
-    // Pretpostavljamo da SalesArticle ima 'stocks', a forma 'initialStocks'
-    const initialStocks = initialArticle.stocks || [];
-    const currentStocks = formValue.initialStocks || [];
-
-    const stocksChanged = JSON.stringify(initialStocks.map(s => ({
-      quantity: s.quantity,
-      expirationDate: s.expirationDate,
-      batchNumber: s.batchNumber
-    }))) !== JSON.stringify(currentStocks);
-
+    const stocksChanged = hasArrayChanges(initialArticle.stocks || [], group.get('initialStocks')?.getRawValue() || [], ['quantity', 'expirationDate', 'batchNumber']);
+    const compositionChanged = hasArrayChanges(initialArticle.composition || [], group.get('components')?.getRawValue() || [], ['articleId', 'quantity']);
+    const barcodesChanged = hasStringArrayChanges(initialArticle.barcodes || [], group.get('barcodes')?.getRawValue() || [])
     // Ako je bilo šta promenjeno, vraćamo null (validno), inače grešku noChanges
-    return fieldsChanged || imageChanged || stocksChanged ? null : {noChanges: true};
+    return (fieldsChanged || imageChanged || stocksChanged || compositionChanged || barcodesChanged) ? null : {noChanges: true};
   };
 }
+
+function hasStringArrayChanges(source: string[], destination: string[]): boolean {
+  // 1. Ako dužine nisu iste, odmah znamo da ima promene
+  if (source.length !== destination.length) return true;
+
+  // 2. Sortiranje (opciono, ali preporučeno)
+  // Ako ti redosled barkodova nije bitan u bazi, sortiraj ih da izbegneš lažne promene
+  const s1 = [...source].sort();
+  const s2 = [...destination].sort();
+
+  // 3. Provera svakog elementa
+  return s1.some((val, index) => val !== s2[index]);
+}
+
+
+function hasArrayChanges<T>(
+  source: T[],
+  destination: T[],
+  keys: (keyof T)[] // Ključevi se prosleđuju dinamički u runtime-u
+): boolean {
+  // Brza provera dužine
+  if (source.length !== destination.length) return true;
+
+  // Provera svakog elementa na osnovu prosleđenih ključeva
+  return source.some((sourceItem, index) => {
+    const destItem = destination[index];
+
+    // Vrati true ako bar jedan ključ na ovom objektu ne odgovara
+    return keys.some(key => {
+      const val1 = sourceItem[key];
+      const val2 = destItem[key];
+
+      // Rukovanje datumima (ako je key npr. expirationDate)
+      if (val1 instanceof Date && val2 instanceof Date) {
+        return val1.getTime() !== val2.getTime();
+      }
+
+      return val1 !== val2;
+    });
+  });
+}
+
 
 export function uniqueValueValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -107,11 +124,11 @@ export const eanValidator: ValidatorFn = (control: AbstractControl): ValidationE
 
   // 1. Provera formata: samo cifre, dužina tačno 8 ili 13
   if (!/^\d{8}$|^\d{13}$/.test(code)) {
-    return { eanFormat: true };
+    return {eanFormat: true};
   }
 
   // 2. Modulo 10 kalkulacija
-  const digits:number[] = code.split('').map(Number);
+  const digits: number[] = code.split('').map(Number);
   const checkDigit = digits.pop();
   let sum = 0;
 
@@ -127,7 +144,7 @@ export const eanValidator: ValidatorFn = (control: AbstractControl): ValidationE
 
   const calculatedCheck = (10 - (sum % 10)) % 10;
 
-  return calculatedCheck === checkDigit ? null : { eanChecksum: true };
+  return calculatedCheck === checkDigit ? null : {eanChecksum: true};
 };
 
 
