@@ -1,15 +1,6 @@
-import {
-  Directive,
-  ElementRef,
-  HostBinding,
-  inject,
-  input,
-  OnDestroy,
-  OnInit,
-  output,
-} from '@angular/core';
-import { EMPTY, fromEvent, merge, Subscription, timer } from 'rxjs';
-import { filter, map, switchMap, take, takeUntil, tap } from 'rxjs/operators';
+import {Directive, ElementRef, HostBinding, inject, input, OnDestroy, OnInit, output,} from '@angular/core';
+import {fromEvent, merge, Subscription, timer} from 'rxjs';
+import {filter, map, switchMap, take, takeUntil, tap} from 'rxjs/operators';
 
 @Directive({
   selector: '[appLongPress]',

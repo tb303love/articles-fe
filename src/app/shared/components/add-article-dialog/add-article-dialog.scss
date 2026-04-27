@@ -2,14 +2,14 @@
   display: flex;
   flex-direction: column;
   min-width: 680px;
-  
+
   .empty-stock-msg {
     padding: 20px;
     text-align: center;
     color: #777;
     font-style: italic;
   }
-  
+
   .bundle-stock-info {
     display: flex;
     align-items: center;
@@ -71,9 +71,13 @@
     grid-template-columns: repeat(2, 1fr); /* Uvek imamo dve kolone */
     gap: 16px;
     align-items: start;
-    
+
     .grid-item:nth-child(n+3) {
       grid-column: span 2;
+    }
+
+    .barcodes {
+      display: flex;
     }
   }
 
@@ -204,12 +208,12 @@
       }
     }
   }
-  
+
   .price-row {
     display: flex;
     gap: 12px;
   }
-  
+
   /* Kontejner za NOVE ulaze robe */
   .new-entry-section {
     border: 1px solid #e0e0e0;
@@ -218,7 +222,7 @@
     margin-top: 10px;
     background-color: #fafafa;
   }
-  
+
   /* Skrolujući deo za redove */
   .stocks-viewport {
     max-height: 250px; /* Podesi visinu po želji (npr. za oko 3 reda) */
@@ -227,7 +231,7 @@
     padding-right: 8px; /* Da skrol bar ne prekriva dugme za brisanje */
     margin-bottom: 10px;
   }
-  
+
   /* Stil za pojedinačni red */
   .stock-row {
     display: grid;
@@ -237,24 +241,24 @@
     padding: 8px;
     border-bottom: 1px dashed #ddd;
   }
-  
+
   .stock-row:last-child {
     border-bottom: none;
   }
 
-  
+
   .bundle-full-width {
     padding: 20px;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     background-color: #fcfcfc;
-    
+
     .bundle-row {
       display: flex;
       gap: 16px;
     }
   }
-  
+
   .section-header {
     display: flex;
     align-items: center;
@@ -266,13 +270,13 @@
       margin-left: 8px;
     }
   }
-  
+
   .history-panel-header {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    
+
   }
-  
+
   .history-list {
     display: grid;
     .history-row {
@@ -312,7 +316,7 @@
       }
     }
   }
-  
+
   .component-row {
     display: grid;
     grid-template-columns: 3fr 1fr 1fr;

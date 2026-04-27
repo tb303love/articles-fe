@@ -57,11 +57,18 @@
               @let av = newArticleForm.controls.active.value;
               {{ av ? 'Aktivan' : 'Neaktivan' }}
             </mat-slide-toggle>
-            <mat-form-field appearance="outline" class="full-width">
+            @let errors = newArticleForm.get('name')?.errors;
+            <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
               <mat-label>Naziv artikla</mat-label>
               <input matInput formControlName="name"/>
               @if (articleStore.loadingStatus().checkName) {
                 <mat-hint>Proveravam...</mat-hint>
+              }
+              @if (errors?.['required']) {
+                <mat-error>Ime je obavezno</mat-error>
+              }
+              @if (errors?.['nameTaken']) {
+                <mat-error>Ime je zauzeto</mat-error>
               }
             </mat-form-field>
 
@@ -79,6 +86,20 @@
                 }
               </mat-autocomplete>
             </mat-form-field>
+            <mat-divider/>
+            <div formArrayName="barcodes">
+              <button matButton type="button" (click)="addNewBarcode()">Dodaj barkod</button>
+              @for (_ of barcodes.controls; track $index) {
+                <div class="barcodes">
+                  <mat-form-field appearance="outline">
+                    <input matInput type="text" placeholder="Barcode" [formControlName]="$index">
+                  </mat-form-field>
+                  <button matIconButton color="warn" type="button" (click)="barcodes.removeAt($index)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
           </div>
 
           <div class="grid-item">
@@ -134,7 +155,7 @@
                       <span>{{ (s.expirationDate| date: 'dd.MM.yyyy') || 'Nema roka' }}</span>
                       <span>{{ s.batchNumber || 'Nema' }}</span>
                       <button type="button" mat-icon-button color="warn" (click)="checkAndWriteOff(s)">
-                        <mat-icon>remove_circle_outline</mat-icon>
+                        <mat-icon>delete</mat-icon>
                       </button>
                     </div>
                   }
@@ -195,7 +216,7 @@
                           type="button"
                           (click)="removeComponent($index)"
                         >
-                          <mat-icon>delete_outline</mat-icon>
+                          <mat-icon>delete</mat-icon>
                         </button>
                       </div>
                     }
@@ -253,7 +274,7 @@
           mat-flat-button
           color="primary"
           type="submit"
-          [disabled]="newArticleForm.invalid || articleStore.loadingStatus().saving"
+          [disabled]="newArticleForm.pending || newArticleForm.invalid || articleStore.loadingStatus().saving"
         >
           <div style="display: flex; align-items: center; gap: 8px">
             @if (articleStore.loadingStatus().saving) {
