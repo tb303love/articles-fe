@@ -1,0 +1,19 @@
+.usb-dialog-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  text-align: center;
+}
+.huge-icon {
+  font-size: 80px;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 20px;
+  animation: blink 1.5s infinite;
+}
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
