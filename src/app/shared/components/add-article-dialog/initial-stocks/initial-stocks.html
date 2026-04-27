@@ -1,0 +1,33 @@
+<div [formGroup]="parentForm">
+  <div class="section-header">
+    <h4>Novi ulaz robe</h4>
+    <button mat-stroked-button color="primary" type="button" (click)="addStock()" [disabled]="stocks.invalid">
+      <mat-icon>add</mat-icon> Dodaj ulaz
+    </button>
+  </div>
+  <div formArrayName="initialStocks">
+    @for (_ of stocks.controls; track $index) {
+      <div [formGroupName]="$index" class="stock-row">
+        <mat-form-field appearance="outline" class="small-field">
+          <input matInput type="number" formControlName="quantity" placeholder="Kom"/>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <input
+            matInput
+            [matDatepicker]="p"
+            formControlName="expirationDate"
+            placeholder="Rok"
+          />
+          <mat-datepicker-toggle matSuffix [for]="p"/>
+          <mat-datepicker #p/>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="small-field">
+          <input matInput type="text" formControlName="batchNumber" placeholder="LOT"/>
+        </mat-form-field>
+        <button mat-icon-button color="warn" type="button" (click)="removeStock($index)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    }
+  </div>
+</div>

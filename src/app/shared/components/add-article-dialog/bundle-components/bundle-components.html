@@ -1,0 +1,30 @@
+<div class="bundle-components-section mt-3" [formGroup]="parentForm">
+  <div class="section-header">
+    <h4><mat-icon>layers</mat-icon> Sastav paketa</h4>
+    <button mat-stroked-button color="primary" type="button" (click)="addComponent()" [disabled]="components.invalid">
+      <mat-icon>add</mat-icon> Dodaj komponentu
+    </button>
+  </div>
+  @if (components.length > 0) {
+    <div formArrayName="components" class="components-list mt-2">
+      @for (comp of components.controls; track $index) {
+        <div [formGroupName]="$index" class="component-row">
+          <mat-form-field appearance="outline" class="flex-grow">
+            <input matInput formControlName="name" [matAutocomplete]="autoComp" placeholder="Izaberi artikal"/>
+            <mat-autocomplete #autoComp="matAutocomplete" (optionSelected)="onSelected($event, $index)">
+              @for (art of getFilteredArticles($index); track art.id) {
+                <mat-option [value]="art.name">{{ art.name }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="small-field">
+            <input matInput type="number" formControlName="quantity"/>
+          </mat-form-field>
+          <button mat-icon-button color="warn" type="button" (click)="removeComponent($index)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>
