@@ -7,8 +7,14 @@ import {
   ComponentFormGroup,
   StockFormGroup,
 } from '../../../core/model/article-form.model';
-import {ArticleStore} from '../../../store/article.store';
-import {articleNoChangesValidator, checkArticleName, validateImage} from '../../form-validators';
+import {ArticleStore} from '../../../store/article/article.store';
+import {
+  articleNoChangesValidator,
+  checkArticleName,
+  eanValidator,
+  uniqueValueValidator,
+  validateImage
+} from '../../form-validators';
 
 /**
  * Kreira grupu za jednu seriju zaliha (Stock Batch)
@@ -63,6 +69,14 @@ export function createComponentGroup(
   return group;
 }
 
+function handleBarcodes(article: SalesArticle, formGroup: FormGroup<AddArticleFormControls>) {
+  if (article && article.barcodes) {
+    article.barcodes.forEach(code => {
+      formGroup.controls.barcodes.push(new FormControl(code, {nonNullable: true}));
+    });
+  }
+}
+
 /**
  * Inicijalizuje celu formu pri otvaranju (Create ili Edit)
  */
@@ -101,6 +115,7 @@ export default function initializeForm(
     formGroup.controls.initialStocks.clear({emitEvent: false});
     formGroup.controls.initialStocks.disable({emitEvent: false});
   }
+  handleBarcodes(article, formGroup);
 
   // 3. Postavljanje osnovnih vrednosti (name, price, category...)
   formGroup.patchValue({
@@ -129,6 +144,7 @@ function createFormGroup(nameAsyncValidators: AsyncValidatorFn[]): ArticleFormGr
       validators: [Validators.required],
       asyncValidators: nameAsyncValidators,
     }),
+    barcodes: new FormArray<FormControl<string>>([], {validators: [uniqueValueValidator()]}),
     price: new FormControl(0, {
       nonNullable: true,
       validators: [Validators.required, Validators.min(0)],
@@ -151,4 +167,10 @@ function createFormGroup(nameAsyncValidators: AsyncValidatorFn[]): ArticleFormGr
     }),
     components: new FormArray<ComponentFormGroup>([]),
   });
+}
+
+export function newBarCodeField(): FormControl<string>;
+export function newBarCodeField(barcode: string): FormControl<string>;
+export function newBarCodeField(barcode?: string) {
+  return new FormControl<string>(barcode ? barcode : '', {validators: [Validators.required, eanValidator]});
 }

@@ -19,15 +19,14 @@ import {filter, tap} from 'rxjs';
 import {FileBrowserData, SalesArticle} from '../../../core/model';
 import {ArticleFormGroup} from '../../../core/model/article-form.model';
 import {ArticlesApiService} from '../../../core/services/articles-api-service';
-import {CategoryApiService} from '../../../core/services/category-api-service';
 import {FileReaderService} from '../../../core/services/file-reader';
 import {createImageUploadHandler} from '../../../core/utils/file-handlers';
-import {ArticleStore} from '../../../store/article.store';
+import {ArticleStore} from '../../../store/article/article.store';
 import {CategoryStore} from '../../../store/category.store';
 import {FloatInputDirective} from '../../directives';
 import {mapFormControlsToFormData} from '../../mappers/mapArticleControlsToFormData';
 import {FileBrowser} from '../file-browser/file-browser';
-import initializeForm, {createComponentGroup, createStockGroup} from './add-article-form-logic';
+import initializeForm, {createComponentGroup, createStockGroup, newBarCodeField} from './add-article-form-logic';
 import {
   StockWriteOffWarningDialog,
   WriteOffWarningData
@@ -58,7 +57,7 @@ import {MatSlideToggle} from '@angular/material/slide-toggle';
     FloatInputDirective,
     MatSlideToggle,
   ],
-  providers: [CategoryApiService, provideNativeDateAdapter()],
+  providers: [provideNativeDateAdapter()],
 })
 export class AddArticleDialog implements OnDestroy {
   private readonly dialogRef = inject(MatDialogRef<AddArticleDialog>);
@@ -106,6 +105,10 @@ export class AddArticleDialog implements OnDestroy {
 
   get components(): FormArray {
     return this.newArticleForm?.get('components') as FormArray;
+  }
+
+  get barcodes(): FormArray {
+    return this.newArticleForm?.get('barcodes') as FormArray;
   }
 
   constructor() {
@@ -271,5 +274,11 @@ export class AddArticleDialog implements OnDestroy {
 
   ngOnDestroy() {
     this.fileReaderService.terminateWorker();
+  }
+
+  protected addNewBarcode() {
+    if (this.barcodes) {
+      this.barcodes.push(newBarCodeField());
+    }
   }
 }

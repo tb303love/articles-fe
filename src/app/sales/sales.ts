@@ -31,8 +31,8 @@ import {SalesService} from '../core/services/sales-service';
 import {StockSyncService} from '../core/services/stock-sync-service';
 import {OrdersList} from '../orders-list/orders-list';
 import {LongPressDirective} from '../shared/directives';
-import {ImageDomSanitizerPipe} from '../shared/pipes/image-dom-sanitizer';
-import {ArticleStore} from '../store/article.store';
+import {ImageDomSanitizerPipe} from '../shared/pipes';
+import {ArticleStore} from '../store/article/article.store';
 import {OrderStore} from '../store/order/order.store';
 
 @Component({
@@ -53,7 +53,6 @@ import {OrderStore} from '../store/order/order.store';
     CartList,
     LongPressDirective,
   ],
-  providers: [SalesService],
   templateUrl: './sales.html',
   styleUrl: './sales.scss',
 })
@@ -68,14 +67,15 @@ export class Sales implements OnInit {
 
   // View references (Signali)
   private cartList = viewChild(CartList);
-  private searchInput = viewChild('searchInput', { read: ElementRef<HTMLInputElement> });
+  private searchInput = viewChild('searchInput', {read: ElementRef<HTMLInputElement>});
 
   // Stanje za fokus i UI
   private lastAddedId = signal<number | null>(null);
-  readonly printReceipt = model(false);
-  readonly isGratis = model(false);
+  protected printReceipt = model(false);
+  protected isGratis = model(false);
 
   constructor() {
+
     this.initFocusEffect();
     this.initDrawerAutoCloseEffect();
   }
@@ -179,7 +179,7 @@ export class Sales implements OnInit {
       quantity: a.quantity,
     }));
 
-    this.orderStore.createOrder({ items, type: saleType, isGratis });
+    this.orderStore.createOrder({items, type: saleType, isGratis});
   }
 
   generateReport() {

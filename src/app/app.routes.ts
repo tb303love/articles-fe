@@ -1,8 +1,7 @@
-import { Routes } from '@angular/router';
-import { adminGuard } from './core/guards';
-import { authGuard } from './core/guards/auth-guard';
-import { Login } from './login/login';
-import { NotFound } from './not-found/not-found';
+import {Routes} from '@angular/router';
+import {adminGuard, authGuard} from './core/guards';
+import {Login} from './login/login';
+import {NotFound} from './not-found/not-found';
 
 export const routes: Routes = [
   // Javno dostupna ruta za prijavu

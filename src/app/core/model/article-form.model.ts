@@ -17,6 +17,7 @@ export type ComponentFormGroup = FormGroup<{
 // Glavna struktura kontrola u formi
 export interface AddArticleFormControls {
   name: FormControl<string>;
+  barcodes: FormArray<FormControl<string>>;
   price: FormControl<number>;
   active: FormControl<boolean>;
   admissionPrice1: FormControl<number>;

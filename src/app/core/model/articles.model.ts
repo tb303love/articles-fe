@@ -44,6 +44,7 @@ export interface ArticleStock {
 export interface ArticleResponse {
   id: number;
   name: string;
+  barcodes: string[];
   price: number;
   admissionPrice1: number;
   admissionPrice2: number;

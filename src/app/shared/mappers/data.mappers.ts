@@ -1,7 +1,3 @@
-import { ArticleResponse, SalesArticle } from '../../core/model';
-
-
-
 export function mapSaleArticlaToSelectedSaleArticle<
   T extends {
     name: string;

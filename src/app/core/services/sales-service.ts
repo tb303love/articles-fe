@@ -1,24 +1,19 @@
-import { HttpClient } from '@angular/common/http';
-import { computed, inject, Injectable, signal } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { mapSaleArticlaToSelectedSaleArticle } from '../../shared/mappers/data.mappers';
-import {
-  Order,
-  OrderRefundRequest,
-  OrderRequest,
-  OrderType,
-  RevenueSummary,
-  SalesArticle,
-  SelectedSalesArticle,
-} from '../model';
+import {HttpClient} from '@angular/common/http';
+import {computed, inject, Injectable, signal} from '@angular/core';
+import {Observable, Subject} from 'rxjs';
+import {environment} from '../../../environments/environment';
+import {Order, OrderRequest, OrderType, RevenueSummary, SalesArticle, SelectedSalesArticle,} from '../model';
+import {BarcodeService} from './barcode.service';
+import {ArticleStore} from '../../store/article/article.store';
 
 @Injectable({
-  providedIn: 'root', // Osiguraj da je singleton na nivou aplikacije
+  providedIn: 'root',
 })
 export class SalesService {
   private readonly apiUrl = `${environment.apiUrl}/orders`;
   private readonly http = inject(HttpClient);
+  private readonly barcodeService = inject(BarcodeService);
+  private readonly articleStore = inject(ArticleStore)
 
   private readonly localSuccessSubject = new Subject<void>();
   readonly localSuccess$ = this.localSuccessSubject.asObservable();
@@ -37,12 +32,17 @@ export class SalesService {
     return total;
   });
 
-  // --- API METODE ---
-
-  processRefund(request: OrderRefundRequest) {
-    return this.http.post<Order>(`${this.apiUrl}/refund`, request);
+  constructor() {
+    this.barcodeService.salesScans$.subscribe(barcode => {
+      const article = this.articleStore.getArticleByBarcode(barcode);
+      const art = article();
+      if (art) {
+        this.addToCart(art);
+      }
+    });
   }
 
+  // --- API METODE ---
   placeOrder(orderRequest: OrderRequest) {
     return this.http.post<Order>(this.apiUrl, {
       items: orderRequest.items,
@@ -104,7 +104,7 @@ export class SalesService {
         if (newQuantity > existing.totalStock) return articles;
 
         const updatedMap = new Map(articles);
-        updatedMap.set(article.id, { ...existing, quantity: newQuantity });
+        updatedMap.set(article.id, {...existing, quantity: newQuantity});
         return updatedMap;
       }
 
@@ -114,14 +114,13 @@ export class SalesService {
       const updatedMap = new Map(articles);
 
       // IZMENA: Destrukturiranje koristi totalStock
-      const { id, name, price, totalStock, composition } = article;
+      const {id, name, price, totalStock} = article;
       updatedMap.set(id, {
         id,
         name,
         price,
         totalStock, // Mapiramo ispravno polje
         quantity: 1,
-        composition,
       } as SelectedSalesArticle);
 
       return updatedMap;
@@ -145,14 +144,14 @@ export class SalesService {
   // U tvom OrderService-u
   sendTestReport(): Observable<string> {
     return this.http.get(`${environment.apiUrl}/test-reports/send-daily`, {
-      params: { email: 'darko.damljanovic@gmail.com' },
+      params: {email: 'darko.damljanovic@gmail.com'},
       responseType: 'text', // Jer endpoint vraća običan String
     });
   }
 
   sendTestMonthlyReport(): Observable<string> {
     return this.http.get(`${environment.apiUrl}/test-reports/send-monthly`, {
-      params: { email: 'darko.damljanovic@gmail.com' },
+      params: {email: 'darko.damljanovic@gmail.com'},
       responseType: 'text', // Jer endpoint vraća običan String
     });
   }

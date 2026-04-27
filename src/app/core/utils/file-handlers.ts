@@ -3,7 +3,7 @@ import {MatDialog} from '@angular/material/dialog';
 import {Observable, of} from 'rxjs';
 import {map, switchMap, tap} from 'rxjs/operators';
 import {ImportConfirmDialog} from '../../import-confirm-dialog/import-confirm-dialog';
-import {ArticleStore} from '../../store/article.store';
+import {ArticleStore} from '../../store/article/article.store';
 import {FileActionHandler} from '../model';
 import {ArticlesApiService} from '../services/articles-api-service';
 import {FileReaderService} from '../services/file-reader';

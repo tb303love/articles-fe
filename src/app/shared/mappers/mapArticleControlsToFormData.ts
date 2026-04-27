@@ -15,6 +15,7 @@ export function mapFormControlsToFormData(controls: AddArticleFormControls): For
   const articleRequest = {
     name: controls.name.value,
     price: controls.price.value,
+    barcodes: controls.barcodes.value,
     active: controls.active.value,
     admissionPrice1: controls.admissionPrice1.value,
     admissionPrice2: controls.admissionPrice2.value,

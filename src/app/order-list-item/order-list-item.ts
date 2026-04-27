@@ -1,15 +1,14 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, inject, input } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Order } from '../core/model';
-import { ConfirmDirective } from '../shared/directives/confirm-dialog-directive';
-import { OrderStore } from '../store/order/order.store';
-import { LongPressDirective } from '../shared/directives';
+import {CommonModule} from '@angular/common';
+import {Component, computed, inject, input} from '@angular/core';
+import {MatButtonModule} from '@angular/material/button';
+import {MatCardModule} from '@angular/material/card';
+import {MatExpansionModule} from '@angular/material/expansion';
+import {MatIconModule} from '@angular/material/icon';
+import {MatListModule} from '@angular/material/list';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import {Order} from '../core/model';
+import {ConfirmDirective, LongPressDirective} from '../shared/directives';
+import {OrderStore} from '../store/order/order.store';
 
 @Component({
   selector: 'app-order-list-item',

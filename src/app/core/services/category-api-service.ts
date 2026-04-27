@@ -14,10 +14,4 @@ export class CategoryApiService {
   public getCategoryNames(): Observable<Category[]> {
     return this.httpClient.get<Category[]>(`${this.apiUrl}`);
   }
-
-  public checkCategoryName(categoryName: string): Observable<boolean> {
-    return this.httpClient.get<boolean>(`${this.apiUrl}/check-category-name`, {
-      params: { categoryName },
-    });
-  }
 }

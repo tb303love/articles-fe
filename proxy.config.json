@@ -10,5 +10,12 @@
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"
+  },
+  "/ws-barcode": {
+    "target": "https://localhost:8443",
+    "secure": false,
+    "ws": true,
+    "changeOrigin": true,
+    "logLevel": "debug"
   }
 }

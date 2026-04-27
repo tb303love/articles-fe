@@ -1,8 +1,8 @@
-import { Component, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { MatIcon, MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import {Component, inject} from '@angular/core';
+import {MatButtonModule} from '@angular/material/button';
+import {MAT_DIALOG_DATA, MatDialogModule} from '@angular/material/dialog';
+import {MatIconModule} from '@angular/material/icon';
+import {MatProgressSpinner} from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-confirm-dialog',

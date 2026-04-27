@@ -12,8 +12,8 @@ import {createExcelImportHandler} from '../core/utils/file-handlers';
 import {AddArticleDialog} from '../shared/components/add-article-dialog/add-article-dialog';
 import {FileBrowser} from '../shared/components/file-browser/file-browser';
 import {ConfirmDirective, HoverOverlayDirective} from '../shared/directives';
-import {ImageDomSanitizerPipe} from '../shared/pipes/image-dom-sanitizer';
-import {ArticleStore} from '../store/article.store';
+import {ImageDomSanitizerPipe} from '../shared/pipes';
+import {ArticleStore} from '../store/article/article.store';
 
 @Component({
   selector: 'app-article-list',

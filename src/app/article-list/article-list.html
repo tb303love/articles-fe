@@ -13,7 +13,6 @@
         <mat-label>Pretraži artikle...</mat-label>
         <input
           matInput
-          #searchInput
           [value]="articlesStore.filterQuery()"
           (input)="onSearch($event)"
           placeholder="Npr. Coca Cola..."
@@ -77,7 +76,7 @@
           <span class="category-tag">{{row.category}}</span>
         </div>
         <div class="grid-cell">
-          <span [class.low-stock]="row.totalStock < 5">{{row.totalStock}} kom</span>
+          <span [style.color]="row.barcodes.length === 0 ? 'red' : 'green'" [class.low-stock]="row.totalStock < 5">{{row.totalStock}} kom</span>
         </div>
 
         <!-- Nabavne cene (grid-cell admission se krije preko CSS-a) -->

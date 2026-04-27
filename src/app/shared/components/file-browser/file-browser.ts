@@ -51,7 +51,7 @@ export class FileBrowser {
     handler.run(file).subscribe({
       next: (shouldClose) => {
         this.isProcessing.set(false); // Oslobađa UI
-        if (shouldClose === true) {
+        if (shouldClose) {
           this.dialogRef.close(true);
         }
       },

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { Navigation } from './navigation/navigation';
+import {Component, inject} from '@angular/core';
+import {RouterOutlet} from '@angular/router';
+import {Navigation} from './navigation/navigation';
+import {UsbCableService} from './core/services/usb-cable.service';
 
 @Component({
   selector: 'app-root',
@@ -9,5 +10,5 @@ import { Navigation } from './navigation/navigation';
   styleUrl: './app.scss',
 })
 export class App {
-
+  private readonly usbCableService = inject(UsbCableService);
 }
