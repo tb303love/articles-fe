@@ -9,7 +9,7 @@
         <!-- Korisničko ime -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Korisničko ime</mat-label>
-          <input matInput formControlName="username" placeholder="Unesite username" autocomplete="off">
+          <input matInput formControlName="username" placeholder="Unesite username" autocomplete="username">
           <mat-icon matPrefix>person</mat-icon>
           @if (loginForm.get('username')?.hasError('required')) {
             <mat-error>Korisničko ime je obavezno.</mat-error>
@@ -19,7 +19,7 @@
         <!-- Lozinka -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Lozinka</mat-label>
-          <input matInput [type]="hide ? 'password' : 'text'" formControlName="password" autocomplete="off">
+          <input matInput [type]="hide ? 'password' : 'text'" formControlName="password" autocomplete="new-password">
           <mat-icon matPrefix>lock</mat-icon>
           <button type="button" mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-label]="'Sakrij lozinku'">
             <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
@@ -37,7 +37,7 @@
       </mat-card-content>
 
       <mat-card-actions>
-        <button mat-raised-button color="primary" type="submit" 
+        <button mat-raised-button color="primary" type="submit"
                 [disabled]="loginForm.invalid" class="login-btn">
           PRIJAVI SE
         </button>
