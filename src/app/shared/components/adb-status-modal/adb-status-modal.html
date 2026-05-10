@@ -1,0 +1,57 @@
+<div mat-dialog-content class="adb-dialog-content">
+  <div class="icon-section">
+    @switch (mode()) {
+    @case ('WIFI') {
+    <mat-icon color="primary" class="huge-icon success-anim">check_circle</mat-icon>
+    }
+    @case ('USB_CONNECTED_WAITING_WIFI') {
+    <mat-icon color="accent" class="huge-icon pulse-anim">settings_input_component</mat-icon>
+    }
+    @case ('USB_UNAUTHORIZED') {
+    <mat-icon color="warn" class="huge-icon shake-anim">phonelink_lock</mat-icon>
+    }
+    @case ('ACTIVATING_WIRELESS') {
+    <mat-icon color="accent" class="huge-icon pulse-anim">sync</mat-icon>
+    }
+    @default {
+    <mat-icon color="warn" class="huge-icon shake-anim">usb_off</mat-icon>
+    }
+    }
+  </div>
+
+  <div class="text-section">
+    <h1 class="mat-headline-medium">
+      @switch (mode()) {
+      @case ('WIFI') { Bežična veza aktivna }
+      @case ('USB_CONNECTED_WAITING_WIFI') { Podešavanje mrežnog rada }
+      @case ('USB_UNAUTHORIZED') { Potrebna autorizacija }
+      @case ('ACTIVATING_WIRELESS') { Inicijalizacija... }
+      @default { Skener nije povezan }
+      }
+    </h1>
+
+    <div class="instruction-box">
+      <!-- Primarna poruka koja pulsira sa Backenda -->
+      <p class="progress-info-text">
+        {{ progressMessage() }}
+      </p>
+
+      @if (mode() === 'USB_UNAUTHORIZED') {
+      <div class="manual-steps">
+        <ul>
+          <li>Pogledajte u <b>ekran telefona</b></li>
+          <li>Označite "Uvek dozvoli" i kliknite <b>OK</b></li>
+        </ul>
+      </div>
+      }
+    </div>
+  </div>
+
+  <div class="progress-container">
+    <mat-progress-bar
+      [mode]="(mode() === 'WIFI' || mode() === 'DISCONNECTED') ? 'determinate' : 'indeterminate'"
+      [value]="mode() === 'WIFI' ? 100 : 0"
+      [color]="mode() === 'WIFI' ? 'primary' : (mode() === 'USB_UNAUTHORIZED' ? 'warn' : 'accent')">
+    </mat-progress-bar>
+  </div>
+</div>

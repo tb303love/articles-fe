@@ -4,8 +4,8 @@ import {computed} from '@angular/core';
 
 export function withArticleSelectors() {
   return signalStoreFeature(
-    { state: type<ArticleState>() },
-    withComputed(({articles, filterQuery}) => ({
+    {state: type<ArticleState>()},
+    withComputed(({articles, filterQuery, editingId}) => ({
       baseArticles: computed(() =>
         articles().filter((a) => !a.composition || a.composition.length === 0),
       ),
@@ -14,6 +14,13 @@ export function withArticleSelectors() {
         const allArticles = articles();
         if (!query) return allArticles;
         return allArticles.filter((a) => a.name.toLowerCase().includes(query));
+      }),
+      countWithStock: computed(() => {
+        const skippingId = editingId();
+
+        return articles().filter(artikal =>
+          artikal.totalStock >= 1 && artikal.id !== skippingId
+        ).length;
       }),
       count: computed(() => articles().length),
     })),

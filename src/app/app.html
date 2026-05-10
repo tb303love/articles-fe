@@ -1,4 +1,11 @@
 <app-navigation/>
 <div>
-  <router-outlet />
+  @if (ssService.isIdle()) {
+    <app-webgl-screen-saver/>
+  }
+
+  <!-- Ostatak tvoje aplikacije -->
+  <div [class.blur-content]="ssService.isIdle()">
+    <router-outlet />
+  </div>
 </div>

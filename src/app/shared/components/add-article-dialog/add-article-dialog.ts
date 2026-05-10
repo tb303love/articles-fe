@@ -15,7 +15,7 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {filter, map, tap} from 'rxjs';
+import {filter, map} from 'rxjs';
 import {FileBrowserData, SalesArticle} from '../../../core/model';
 import {ArticleFormGroup} from '../../../core/model/article-form.model';
 import {FileReaderService} from '../../../core/services/file-reader';
@@ -29,7 +29,6 @@ import initializeForm, {newBarCodeField} from './add-article-form-logic';
 import {MatSlideToggle} from '@angular/material/slide-toggle';
 import {BundleComponents} from './bundle-components/bundle-components';
 import {InitialStocks} from './initial-stocks/initial-stocks';
-import {mergeMap} from 'rxjs/operators';
 
 @Component({
   selector: 'app-add-article-dialog',
@@ -56,7 +55,6 @@ import {mergeMap} from 'rxjs/operators';
     MatSlideToggle,
     BundleComponents,
     InitialStocks,
-
   ],
   providers: [provideNativeDateAdapter()],
 })
@@ -75,7 +73,7 @@ export class AddArticleDialog implements OnDestroy {
   protected readonly isBundle = signal(false);
   protected readonly formReady = signal(false);
   protected readonly imagePreview = this.fileReaderService.imagePreview;
-  isEditMode = computed(() => !!this.dialogData?.id);
+  protected isEditMode = computed(() => !!this.dialogData?.id);
 
   // Unutar klase komponente:
   private readonly categorySearchTerm = signal<string>('');
@@ -132,17 +130,16 @@ export class AddArticleDialog implements OnDestroy {
             if (this.dialogData?.composition && this.dialogData.composition.length > 0) {
               this.isBundle.set(true);
             }
-
+            this.articleStore.setCurrentEditingArticle(this.dialogData?.id || null);
             this.formReady.set(true);
-
           } else {
             this.newArticleForm.patchValue({image}, {emitEvent: true});
           }
-          return true;
+          return true
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((changes) => {
+      .subscribe(() => {
         this.cdr.detectChanges()
       });
   }
@@ -194,6 +191,7 @@ export class AddArticleDialog implements OnDestroy {
 
   ngOnDestroy() {
     this.fileReaderService.terminateWorker();
+    this.articleStore.setCurrentEditingArticle(null);
   }
 
   protected addNewBarcode() {

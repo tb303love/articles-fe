@@ -3,26 +3,6 @@
   flex-direction: column;
   min-width: 680px;
 
-  .empty-stock-msg {
-    padding: 20px;
-    text-align: center;
-    color: #777;
-    font-style: italic;
-  }
-
-  .bundle-stock-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px;
-    background-color: #e3f2fd;
-    color: #1976d2;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    font-size: 14px;
-  }
-
-
   .dialog-header {
     background: #1a237e;
     color: white;
@@ -35,26 +15,31 @@
       display: flex;
       align-items: center;
       gap: 16px;
+
       .icon-circle {
         background: rgba(255, 255, 255, 0.15);
         padding: 10px;
         border-radius: 12px;
+
         mat-icon {
           display: block;
           font-size: 24px;
         }
       }
+
       h2 {
         margin: 0;
         font-size: 1.2rem;
         font-weight: 600;
       }
+
       p {
         margin: 0;
         font-size: 0.8rem;
         opacity: 0.7;
       }
     }
+
     .close-btn {
       color: white;
     }
@@ -78,6 +63,11 @@
 
     .barcodes {
       display: flex;
+      gap: 12px;
+
+      .mat-mdc-form-field {
+        flex:1
+      }
     }
   }
 
@@ -121,6 +111,7 @@
         border-color: #1a237e;
         background: #f8f9ff;
       }
+
       &.has-image {
         border-style: solid;
         border-color: #eee;
@@ -137,6 +128,7 @@
         flex-direction: column;
         align-items: center;
         color: #bdbdbd;
+
         mat-icon {
           font-size: 40px;
           width: 40px;
@@ -190,100 +182,24 @@
       grid-template-columns: 1.25fr 0.75fr;
       gap: 20px;
     }
-
-    mat-form-field {
-      width: 100%;
-
-      // Centriranje valute (RSD)
-      .currency-suffix {
-        font-weight: 700;
-        font-size: 12px;
-        color: #666;
-        margin-right: 8px;
-      }
-
-      ::ng-deep .mat-mdc-form-field-suffix {
-        display: flex;
-        align-items: center;
-      }
-    }
   }
 
   .price-row {
     display: flex;
+    padding: 0 16px;
     gap: 12px;
   }
-
-  /* Kontejner za NOVE ulaze robe */
-  .new-entry-section {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 16px;
-    margin-top: 10px;
-    background-color: #fafafa;
-  }
-
-  /* Skrolujući deo za redove */
-  .stocks-viewport {
-    max-height: 250px; /* Podesi visinu po želji (npr. za oko 3 reda) */
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-right: 8px; /* Da skrol bar ne prekriva dugme za brisanje */
-    margin-bottom: 10px;
-  }
-
-  /* Stil za pojedinačni red */
-  .stock-row {
-    display: grid;
-    grid-template-columns: 2fr 3fr 3fr 1fr;
-    gap: 12px;
-    margin-bottom: 8px;
-    padding: 8px;
-    border-bottom: 1px dashed #ddd;
-  }
-
-  .stock-row:last-child {
-    border-bottom: none;
-  }
-
 
   .bundle-full-width {
-    padding: 20px;
-    border: 1px solid #e0e0e0;
+    padding: 16px;
     border-radius: 8px;
     background-color: #fcfcfc;
-
-    .bundle-row {
-      display: flex;
-      gap: 16px;
-    }
-  }
-
-  .section-header {
-    display: flex;
-    align-items: center;
-    > h4 {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-left: 8px;
-    }
   }
 
   .history-panel-header {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
 
-  }
-
-  .history-list {
-    display: grid;
-    .history-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      align-items: center;
-    }
   }
 
   mat-dialog-actions {
@@ -294,9 +210,15 @@
 
     button[type='submit'] {
       width: 124px;
+
+      .loading-button-status {
+        display: flex;
+        align-items: center;
+        gap: 8px
+      }
     }
 
-    button {
+    button[type='button'] {
       display: flex;
       align-items: center;
 
@@ -315,11 +237,5 @@
         background-color: #ccc !important;
       }
     }
-  }
-
-  .component-row {
-    display: grid;
-    grid-template-columns: 3fr 1fr 1fr;
-    gap: 12px;
   }
 }

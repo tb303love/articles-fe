@@ -46,6 +46,7 @@ export function articleNoChangesValidator(
     const fieldsChanged =
       formValue.name !== initialArticle.name ||
       formValue.price !== initialArticle.price ||
+      formValue.active !== initialArticle.active ||
       formValue.admissionPrice1 !== initialArticle.admissionPrice1 ||
       formValue.admissionPrice2 !== initialArticle.admissionPrice2 ||
       formValue.category !== initialArticle.category;

@@ -11,6 +11,7 @@ export type ArticleState = {
   filterQuery: string;
   isAvailable: boolean;
   searchTerm: string;
+  editingId: number | null,
 };
 
 export interface CheckNamePayload {
@@ -28,5 +29,6 @@ export const initialState: ArticleState = {
   },
   filterQuery: '',
   isAvailable: false,
-  searchTerm: ''
+  searchTerm: '',
+  editingId: null,
 };

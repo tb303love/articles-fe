@@ -87,12 +87,12 @@
               </mat-autocomplete>
             </mat-form-field>
             <mat-divider/>
-            <div formArrayName="barcodes">
+            <div class="barcodes-container" formArrayName="barcodes">
               <button matButton type="button" (click)="addNewBarcode()">Dodaj barkod</button>
               @for (_ of barcodes.controls; track $index) {
                 <div class="barcodes">
                   <mat-form-field appearance="outline">
-                    <input matInput type="text" placeholder="Barcode" [formControlName]="$index">
+                    <input matInput type="text" placeholder="Barkod" [formControlName]="$index">
                   </mat-form-field>
                   <button matIconButton color="warn" type="button" (click)="barcodes.removeAt($index)">
                     <mat-icon>delete</mat-icon>
@@ -121,16 +121,20 @@
 
           <!-- BOTTOM SECTION -->
           <div class="grid-item bundle-full-width">
-            <div class="bundle-toggle mb-3">
-              <mat-checkbox
-                (change)="toggleBundle($event.checked)"
-                [checked]="isBundle()"
-              >
-                Ovo je Bundle (Paket)
-              </mat-checkbox>
-            </div>
-            <!-- SEKCIJA ZA KOMPONENTE BUNDLE-A -->
-            <app-bundle-components [dialogData]="dialogData" [hidden]="!isBundle()"/>
+            @if(articleStore.countWithStock()) {
+              <div class="bundle-toggle mb-3">
+                <mat-checkbox
+                  (change)="toggleBundle($event.checked)"
+                  [checked]="isBundle()"
+                >
+                  Ovo je Bundle (Paket)
+                </mat-checkbox>
+              </div>
+              <!-- SEKCIJA ZA KOMPONENTE BUNDLE-A -->
+              <app-bundle-components [dialogData]="dialogData" [hidden]="!isBundle()"/>
+            } @else {
+              Minumum 1 artikal je potreban sa svojim zalihama.
+            }
             <!-- NOVI ULAZ ROBE -->
             <app-initial-stocks [hidden]="isBundle()"/>
           </div>
@@ -145,7 +149,7 @@
           type="submit"
           [disabled]="newArticleForm.pending || newArticleForm.invalid || articleStore.loadingStatus().saving"
         >
-          <div style="display: flex; align-items: center; gap: 8px">
+          <div class="loading-button-status">
             @if (articleStore.loadingStatus().saving) {
               <mat-spinner diameter="20"></mat-spinner><span>Čuvanje...</span>
             } @else {

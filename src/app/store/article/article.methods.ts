@@ -17,6 +17,9 @@ export function withArticleMethods() {
         operationSuccess$() {
           return operationSuccessSubject.asObservable();
         },
+        setCurrentEditingArticle(editingId:number|null){
+          patchState(store, {editingId});
+        },
         getArticleByBarcode(barcode: string) {
           return computed(() => store.articles().find((item) => item.barcodes.includes(barcode)));
         },

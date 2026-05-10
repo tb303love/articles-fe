@@ -4,7 +4,7 @@ import {Observable, Subject} from 'rxjs';
 import {environment} from '../../../environments/environment';
 import {Order, OrderRequest, OrderType, RevenueSummary, SalesArticle, SelectedSalesArticle,} from '../model';
 import {BarcodeService} from './barcode.service';
-import {ArticleStore} from '../../store/article/article.store';
+import {ArticleStore} from '../../store';
 
 @Injectable({
   providedIn: 'root',
@@ -20,6 +20,7 @@ export class SalesService {
 
   // Glavno stanje korpe kao Map za O(1) pristup po ID-u
   readonly selectedArticles = signal<Map<number, SelectedSalesArticle>>(new Map());
+  readonly lastAddedId = signal<number | null>(null);
 
   // Izvedene vrednosti (Computed signali su ekstremno brzi za 1366px rezoluciju)
   readonly selectedArticlesSize = computed(() => this.selectedArticles().size);
@@ -125,6 +126,7 @@ export class SalesService {
 
       return updatedMap;
     });
+    this.lastAddedId.set(article.id);
   }
 
   removeFromCart(article: SelectedSalesArticle): void {

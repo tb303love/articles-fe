@@ -8,7 +8,6 @@ import {
   inject,
   model,
   OnInit,
-  signal,
   untracked,
   viewChild,
 } from '@angular/core';
@@ -32,8 +31,7 @@ import {StockSyncService} from '../core/services/stock-sync-service';
 import {OrdersList} from '../orders-list/orders-list';
 import {LongPressDirective} from '../shared/directives';
 import {ImageDomSanitizerPipe} from '../shared/pipes';
-import {ArticleStore} from '../store/article/article.store';
-import {OrderStore} from '../store/order/order.store';
+import {ArticleStore, OrderStore} from '../store';
 
 @Component({
   selector: 'app-sales',
@@ -69,13 +67,11 @@ export class Sales implements OnInit {
   private cartList = viewChild(CartList);
   private searchInput = viewChild('searchInput', {read: ElementRef<HTMLInputElement>});
 
-  // Stanje za fokus i UI
-  private lastAddedId = signal<number | null>(null);
   protected printReceipt = model(false);
   protected isGratis = model(false);
+  private readonly lastAddedId = this.salesService.lastAddedId;
 
   constructor() {
-
     this.initFocusEffect();
     this.initDrawerAutoCloseEffect();
   }
@@ -89,6 +85,7 @@ export class Sales implements OnInit {
   private initFocusEffect() {
     effect(() => {
       const idToFocus = this.lastAddedId();
+
       // Pristupamo spinerima koji su sada unutar CartList komponente
       const currentSpinners = this.cartList()?.spinners() || [];
 
@@ -162,7 +159,6 @@ export class Sales implements OnInit {
   // Akcije
   addToCart(article: SalesArticle, isOutOfStock: boolean) {
     if (isOutOfStock) return;
-    this.lastAddedId.set(article.id);
     this.salesService.addToCart(article);
   }
 

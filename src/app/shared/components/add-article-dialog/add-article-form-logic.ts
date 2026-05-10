@@ -40,39 +40,41 @@ export function createStockGroup(
  * Kreira grupu za jednu komponentu paketa (Bundle)
  */
 export function createComponentGroup(
-  articleStore: any,
   id: number | null = null,
   qty: number = 1,
   name: string = '',
 ) {
-  const group = new FormGroup({
+  return new FormGroup({
     componentId: new FormControl(id, {validators: [Validators.required]}),
     quantity: new FormControl(qty, {validators: [Validators.required, Validators.min(1)]}),
     name: new FormControl(name),
   });
-
-  group.get('componentId')?.valueChanges.subscribe((selectedId) => {
-    // Ovde koristimo novi totalStock ili stocks sumu iz store-a ako postoji
-    const selectedArt = articleStore.articles().find((a: any) => a.id === selectedId);
-    const stock = selectedArt?.totalStock || 0;
-
-    group
-      .get('quantity')
-      ?.setValidators([Validators.required, Validators.min(1), Validators.max(stock)]);
-    group.get('quantity')?.updateValueAndValidity();
-  });
-
-  if (id) {
-    group.get('componentId')?.updateValueAndValidity();
-  }
-
-  return group;
 }
 
 function handleBarcodes(article: SalesArticle, formGroup: FormGroup<AddArticleFormControls>) {
   if (article && article.barcodes) {
     article.barcodes.forEach(code => {
       formGroup.controls.barcodes.push(new FormControl(code, {nonNullable: true}));
+    });
+  }
+}
+
+function handleBundle(article: SalesArticle, formGroup: FormGroup<AddArticleFormControls>) {
+  if (article.composition && article.composition.length > 0) {
+    article.composition.forEach((comp) => {
+      formGroup.controls.components.push(
+        createComponentGroup(comp.articleId, comp.quantity, comp.name)
+      );
+    });
+  }
+}
+
+function handleStocks(article: SalesArticle, formGroup: FormGroup<AddArticleFormControls>) {
+  if (article.stocks && article.stocks.length > 0) {
+    article.stocks.forEach((stock) => {
+      formGroup.controls.initialStocks.push(
+        createStockGroup(stock.quantity, stock.expirationDate, stock.batchNumber || '')
+      );
     });
   }
 }
@@ -92,30 +94,14 @@ export default function initializeForm(
 
   const formGroup = createFormGroup(nameAsyncValidators);
 
-  console.log(formGroup);
-  console.log(article);
-
   // Ako kreiramo NOVI artikal
   if (!article) {
     return formGroup;
   }
 
   // 2. Popunjavanje Bundle komponenti (ako je paket)
-  if (article.composition && article.composition.length > 0) {
-    article.composition.forEach((comp) => {
-      formGroup.controls.components.push(
-        createComponentGroup(articleStore, comp.articleId, comp.quantity, comp.name)
-      );
-    });
-  }
-
-  if(article.stocks && article.stocks.length > 0) {
-    article.stocks.forEach((stock) => {
-      formGroup.controls.initialStocks.push(
-        createStockGroup(stock.quantity, stock.expirationDate, stock.batchNumber || '')
-      );
-    });
-  }
+  handleBundle(article, formGroup);
+  handleStocks(article, formGroup);
   handleBarcodes(article, formGroup);
 
   // 3. Postavljanje osnovnih vrednosti (name, price, category...)
@@ -158,7 +144,7 @@ function createFormGroup(nameAsyncValidators: AsyncValidatorFn[]): ArticleFormGr
       nonNullable: true,
       validators: [Validators.required, Validators.min(0)],
     }),
-    active: new FormControl(),
+    active: new FormControl(true, {nonNullable: true}),
     // NOVO: FormArray za praćenje više serija i rokova
     initialStocks: new FormArray<StockFormGroup>([]),
     category: new FormControl(null),

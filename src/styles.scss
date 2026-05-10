@@ -10,6 +10,23 @@ body {
   overflow: hidden; // OVO UKLANJA SPOLJNI DESNI I DONJI SKROL
 }
 
+mat-form-field {
+  width: 196px;
+
+  // Centriranje valute (RSD)
+  .currency-suffix {
+    font-weight: 700;
+    font-size: 12px;
+    color: #666;
+    margin-right: 8px;
+  }
+
+  ::ng-deep .mat-mdc-form-field-suffix {
+    display: flex;
+    align-items: center;
+  }
+}
+
 .search-field {
   width: 320px;
   .mat-mdc-form-field-subscript-wrapper { display: none; }

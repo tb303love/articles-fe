@@ -1,0 +1,99 @@
+.adb-dialog-content { // Promenjen selektor da odgovara HTML-u
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px !important;
+  min-height: 320px;
+  text-align: center;
+
+  .icon-section {
+    margin-bottom: 24px;
+    height: 96px; // Rezervisan prostor da UI ne "skače" pri promeni ikonice
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .huge-icon {
+      font-size: 96px;
+      height: 96px;
+      width: 96px;
+      transition: color 0.4s ease, transform 0.4s ease;
+    }
+  }
+
+  .text-section {
+    width: 100%;
+
+    h1 {
+      font-weight: 500;
+      margin-bottom: 16px;
+      color: var(--mat-sys-on-surface);
+    }
+
+    .instruction-box {
+      min-height: 60px; // Osigurava stabilnost teksta
+      margin-bottom: 24px;
+
+      .progress-info-text {
+        font-size: 16px;
+        color: var(--mat-sys-on-surface-variant);
+        line-height: 1.5;
+        margin: 0;
+      }
+
+      .manual-steps {
+        margin-top: 12px;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.04);
+        border-radius: 8px;
+        text-align: left;
+
+        ul {
+          margin: 0;
+          padding-left: 20px;
+          font-size: 14px;
+          color: var(--mat-sys-secondary);
+        }
+      }
+    }
+  }
+
+  .progress-container {
+    width: 100%;
+    margin-top: auto;
+    padding-top: 16px;
+
+    mat-progress-bar {
+      border-radius: 4px;
+      height: 6px;
+    }
+  }
+
+  // Animacije usklađene sa HTML-om
+  .pulse-anim {
+    animation: pulse-animation 2s infinite ease-in-out;
+  }
+
+  .shake-anim {
+    animation: shake-animation 0.5s infinite ease-in-out;
+  }
+
+  .success-anim {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 8px rgba(var(--mat-sys-primary-rgb), 0.4));
+  }
+}
+
+// Keyframes
+@keyframes pulse-animation {
+  0% { transform: scale(0.95); opacity: 0.7; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.7; }
+}
+
+@keyframes shake-animation {
+  0% { transform: translateX(0) rotate(0); }
+  25% { transform: translateX(-2px) rotate(-2deg); }
+  75% { transform: translateX(2px) rotate(2deg); }
+  100% { transform: translateX(0) rotate(0); }
+}

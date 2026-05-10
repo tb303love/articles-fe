@@ -1,0 +1,25 @@
+:host {
+  /* Stil za pojedinačni red */
+  .stock-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+    border-bottom: 1px dashed #ddd;
+  }
+
+  .stock-row:last-child {
+    border-bottom: none;
+  }
+  .header {
+    display: flex;
+    align-items: center;
+
+    > h4 {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 8px;
+    }
+  }
+}

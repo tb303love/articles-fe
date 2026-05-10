@@ -1,12 +1,13 @@
-import {Component, inject, input} from '@angular/core';
-import {MatFormField, MatInput} from '@angular/material/input';
+import {Component, computed, inject, input, OnInit} from '@angular/core';
+import {MatError, MatFormField, MatInput} from '@angular/material/input';
 import {MatIcon} from '@angular/material/icon';
 import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from '@angular/material/autocomplete';
 import {FormArray, FormGroupDirective, ReactiveFormsModule, Validators} from '@angular/forms';
 import {createComponentGroup} from '../add-article-form-logic';
 import {ArticleStore} from '../../../../store';
 import {SalesArticle} from '../../../../core/model';
-import {MatButton, MatIconButton} from '@angular/material/button';
+import {MatIconButton} from '@angular/material/button';
+import {toSignal} from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-bundle-components',
@@ -17,36 +18,37 @@ import {MatButton, MatIconButton} from '@angular/material/button';
     MatOption,
     ReactiveFormsModule,
     MatAutocompleteTrigger,
-    MatButton,
     MatInput,
-    MatIconButton
+    MatIconButton,
+    MatError
   ],
   templateUrl: './bundle-components.html',
   styleUrl: './bundle-components.scss',
 })
-export class BundleComponents {
+export class BundleComponents implements OnInit {
   private readonly rootFormGroup = inject(FormGroupDirective);
   private readonly articleStore = inject(ArticleStore);
   dialogData = input<SalesArticle | null>();
+  private readonly componentsValue = toSignal(this.components.valueChanges, {initialValue: this.components.value});
 
   // Prosledi funkcije za filtriranje kao Inpute ako zavise od glavnog Store-a
-  protected getFilteredArticles(index: number) {
-    // Uzimamo trenutnu vrednost iz polja 'name' za tu komponentu
-    const control = this.components.at(index).get('name');
-    const searchValue = (control?.value || '').toString().toLowerCase();
+  protected readonly filteredArticlesPerIndex = computed(() => {
+    const currentArticles = this.articleStore.articles();
+    const formValues = this.componentsValue();
+    const editingId = this.dialogData()?.id;
 
-    return this.articleStore.articles().filter(
-      (art) =>
-        // 1. Naziv se poklapa
-        art.name.toLowerCase().includes(searchValue) &&
-        // 2. Ne dozvoljavamo da artikal sadrži samog sebe (ako je u Edit modu)
-        art.id !== this.dialogData()?.id &&
-        art.totalStock > 0
-        &&
-        // 3. Ne nudimo druge artikle koji su već Bundle (da izbegnemo preveliku dubinu)
-        (art.composition === null || art.composition.length === 0),
-    );
-  }
+    // Vraćamo mapu gde je ključ indeks reda, a vrednost filtrirani artikli
+    return formValues.map((val: any) => {
+      const search = (val.name || '').toLowerCase();
+
+      return currentArticles.filter(art =>
+        art.name.toLowerCase().includes(search) &&
+        art.id !== editingId &&
+        art.totalStock > 0 &&
+        (!art.composition || art.composition.length === 0)
+      );
+    });
+  });
 
   get parentForm() {
     return this.rootFormGroup.form;
@@ -56,8 +58,22 @@ export class BundleComponents {
     return this.parentForm.get('components') as FormArray;
   }
 
+  ngOnInit() {
+    const group = this.components;
+    group.get('componentId')?.valueChanges.subscribe((selectedId) => {
+      // Ovde koristimo novi totalStock ili stocks sumu iz store-a ako postoji
+      const selectedArt = this.articleStore.articles().find((a: any) => a.id === selectedId);
+      const stock = selectedArt?.totalStock || 0;
+
+      group
+        .get('quantity')
+        ?.setValidators([Validators.required, Validators.min(1), Validators.max(stock)]);
+      group.get('quantity')?.updateValueAndValidity();
+    });
+  }
+
   addComponent() {
-    this.components.push(createComponentGroup(this.articleStore));
+    this.components.push(createComponentGroup());
   }
 
   removeComponent(index: number) {
@@ -74,8 +90,8 @@ export class BundleComponents {
       group.get('componentId')?.setValue(article.id);
 
       // Opciono: Ažuriramo validaciju da količina ne može biti veća od dostupne u magacinu
-      group.get('quantity')?.setValidators([Validators.required, Validators.min(1)]);
-      group.get('quantity')?.updateValueAndValidity();
+      group.get('quantity')?.setValidators([Validators.required, Validators.min(1), Validators.max(article.totalStock)]);
+      // group.get('quantity')?.updateValueAndValidity();
     }
   }
 }

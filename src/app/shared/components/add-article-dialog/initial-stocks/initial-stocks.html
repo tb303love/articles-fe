@@ -1,8 +1,8 @@
 <div [formGroup]="parentForm">
-  <div class="section-header">
+  <div class="header">
     <h4>Novi ulaz robe</h4>
-    <button mat-stroked-button color="primary" type="button" (click)="addStock()" [disabled]="stocks.invalid">
-      <mat-icon>add</mat-icon> Dodaj ulaz
+    <button mat-icon-button color="primary" type="button" (click)="addStock()" [disabled]="stocks.invalid">
+      <mat-icon>add</mat-icon>
     </button>
   </div>
   <div formArrayName="initialStocks">
