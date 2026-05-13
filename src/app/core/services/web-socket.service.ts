@@ -17,15 +17,15 @@ export class WebSocketService {
     this.rxStomp.activate();
   }
 
-  watchTopic(topic: string) {
+  watchTopic<T>(topic: string) {
     return this.rxStomp.watch(topic).pipe(
       map(message => {
         try {
           // Pokušaj da parsiraš kao JSON (za inventory/StockEntry)
-          return JSON.parse(message.body);
+          return JSON.parse(message.body) as T;
         } catch (e) {
           // Ako ne uspe, vrati sirov tekst (za tvoj sales barkod)
-          return message.body;
+          return message.body as T;
         }
       }),
     );
