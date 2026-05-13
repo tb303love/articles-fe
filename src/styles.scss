@@ -8,6 +8,10 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden; // OVO UKLANJA SPOLJNI DESNI I DONJI SKROL
+
+  &.screensaver-active {
+    cursor: none;
+  }
 }
 
 mat-form-field {
