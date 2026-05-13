@@ -1,14 +1,14 @@
-.adb-dialog-content { // Promenjen selektor da odgovara HTML-u
+.adb-dialog-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 32px !important;
-  min-height: 320px;
+  min-height: 300px; // Malo smanjeno jer nema WIFI teksta
   text-align: center;
 
   .icon-section {
     margin-bottom: 24px;
-    height: 96px; // Rezervisan prostor da UI ne "skače" pri promeni ikonice
+    height: 96px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -17,42 +17,44 @@
       font-size: 96px;
       height: 96px;
       width: 96px;
-      transition: color 0.4s ease, transform 0.4s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
   }
 
   .text-section {
     width: 100%;
-
     h1 {
-      font-weight: 500;
-      margin-bottom: 16px;
+      font-weight: 600; // Malo jači font za kritične statuse
+      margin-bottom: 12px;
       color: var(--mat-sys-on-surface);
+      letter-spacing: -0.5px;
     }
 
     .instruction-box {
-      min-height: 60px; // Osigurava stabilnost teksta
-      margin-bottom: 24px;
+      min-height: 50px;
+      margin-bottom: 20px;
 
       .progress-info-text {
-        font-size: 16px;
+        font-size: 15px;
         color: var(--mat-sys-on-surface-variant);
-        line-height: 1.5;
-        margin: 0;
+        line-height: 1.4;
       }
 
       .manual-steps {
-        margin-top: 12px;
-        padding: 12px;
-        background: rgba(0, 0, 0, 0.04);
-        border-radius: 8px;
+        margin-top: 16px;
+        padding: 16px;
+        background: var(--mat-sys-surface-container-high, rgba(0, 0, 0, 0.05));
+        border-radius: 12px; // Modernije zaobljene ivice
         text-align: left;
+        border: 1px solid rgba(0, 0, 0, 0.05);
 
         ul {
           margin: 0;
-          padding-left: 20px;
+          padding-left: 24px;
           font-size: 14px;
-          color: var(--mat-sys-secondary);
+          color: var(--mat-sys-on-surface);
+
+          li { margin-bottom: 4px; }
         }
       }
     }
@@ -61,39 +63,34 @@
   .progress-container {
     width: 100%;
     margin-top: auto;
-    padding-top: 16px;
+    padding-top: 8px;
 
     mat-progress-bar {
-      border-radius: 4px;
-      height: 6px;
+      border-radius: 8px;
+      height: 8px;
     }
   }
 
-  // Animacije usklađene sa HTML-om
+  // Animacije
   .pulse-anim {
-    animation: pulse-animation 2s infinite ease-in-out;
+    animation: usb-pulse 2.5s infinite ease-in-out;
   }
 
   .shake-anim {
-    animation: shake-animation 0.5s infinite ease-in-out;
-  }
-
-  .success-anim {
-    transform: scale(1.1);
-    filter: drop-shadow(0 0 8px rgba(var(--mat-sys-primary-rgb), 0.4));
+    animation: error-shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    animation-iteration-count: infinite;
   }
 }
 
-// Keyframes
-@keyframes pulse-animation {
-  0% { transform: scale(0.95); opacity: 0.7; }
-  50% { transform: scale(1.05); opacity: 1; }
-  100% { transform: scale(0.95); opacity: 0.7; }
+@keyframes usb-pulse {
+  0% { transform: scale(1); opacity: 0.8; filter: grayscale(1); }
+  50% { transform: scale(1.1); opacity: 1; filter: grayscale(0); }
+  100% { transform: scale(1); opacity: 0.8; filter: grayscale(1); }
 }
 
-@keyframes shake-animation {
-  0% { transform: translateX(0) rotate(0); }
-  25% { transform: translateX(-2px) rotate(-2deg); }
-  75% { transform: translateX(2px) rotate(2deg); }
-  100% { transform: translateX(0) rotate(0); }
+@keyframes error-shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
 }
