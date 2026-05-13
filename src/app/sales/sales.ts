@@ -7,6 +7,7 @@ import {
   HostListener,
   inject,
   model,
+  OnDestroy,
   OnInit,
   untracked,
   viewChild,
@@ -24,7 +25,7 @@ import {MatListModule} from '@angular/material/list';
 import {MatSidenavModule} from '@angular/material/sidenav';
 
 import {CartList} from '../cart-list/cart-list';
-import {OrderType, SalesArticle, SelectedSalesArticle} from '../core/model';
+import {OrderType, SelectedSalesArticle} from '../core/model';
 import {AuthService} from '../core/services/auth-service';
 import {SalesService} from '../core/services/sales-service';
 import {StockSyncService} from '../core/services/stock-sync-service';
@@ -32,6 +33,8 @@ import {OrdersList} from '../orders-list/orders-list';
 import {LongPressDirective} from '../shared/directives';
 import {ImageDomSanitizerPipe} from '../shared/pipes';
 import {ArticleStore, OrderStore} from '../store';
+import {ActivatedRoute} from '@angular/router';
+import {filter, map} from 'rxjs';
 
 @Component({
   selector: 'app-sales',
@@ -54,13 +57,14 @@ import {ArticleStore, OrderStore} from '../store';
   templateUrl: './sales.html',
   styleUrl: './sales.scss',
 })
-export class Sales implements OnInit {
+export class Sales implements OnInit, OnDestroy {
   // Inject-ovanje servisa i store-ova
   protected readonly salesService = inject(SalesService);
   protected readonly articlesStore = inject(ArticleStore);
   protected readonly orderStore = inject(OrderStore);
   private readonly stockSync = inject(StockSyncService);
   protected readonly authService = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
 
   // View references (Signali)
@@ -74,12 +78,28 @@ export class Sales implements OnInit {
   constructor() {
     this.initFocusEffect();
     this.initDrawerAutoCloseEffect();
+
+    this.route.queryParamMap.pipe(
+      map(params => params.get('barcode')), // Izvuci samo vrednost bar-koda
+      filter((barcode): barcode is string => !!barcode),
+      takeUntilDestroyed()
+    ).subscribe(barcode => {
+      const article = this.articlesStore.getArticleByBarcode(barcode);
+      const art = article();
+      if (art) {
+        this.salesService.addToCart(art);
+      }
+    });
   }
 
   ngOnInit(): void {
     this.clearSearch();
     this.loadInitialData();
     this.setupSubscriptions();
+  }
+
+  ngOnDestroy() {
+    this.salesService.clearCart();
   }
 
   private initFocusEffect() {
@@ -154,12 +174,6 @@ export class Sales implements OnInit {
         if (!nextIdToFocus) this.searchInput()?.nativeElement.focus();
       }
     }
-  }
-
-  // Akcije
-  addToCart(article: SalesArticle, isOutOfStock: boolean) {
-    if (isOutOfStock) return;
-    this.salesService.addToCart(article);
   }
 
   removeFromCart(article: SelectedSalesArticle) {

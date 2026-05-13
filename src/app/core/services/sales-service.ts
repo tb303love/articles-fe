@@ -3,7 +3,6 @@ import {computed, inject, Injectable, signal} from '@angular/core';
 import {Observable, Subject} from 'rxjs';
 import {environment} from '../../../environments/environment';
 import {Order, OrderRequest, OrderType, RevenueSummary, SalesArticle, SelectedSalesArticle,} from '../model';
-import {BarcodeService} from './barcode.service';
 import {ArticleStore} from '../../store';
 
 @Injectable({
@@ -12,7 +11,6 @@ import {ArticleStore} from '../../store';
 export class SalesService {
   private readonly apiUrl = `${environment.apiUrl}/orders`;
   private readonly http = inject(HttpClient);
-  private readonly barcodeService = inject(BarcodeService);
   private readonly articleStore = inject(ArticleStore)
 
   private readonly localSuccessSubject = new Subject<void>();
@@ -32,16 +30,6 @@ export class SalesService {
     }
     return total;
   });
-
-  constructor() {
-    this.barcodeService.salesScans$.subscribe(barcode => {
-      const article = this.articleStore.getArticleByBarcode(barcode);
-      const art = article();
-      if (art) {
-        this.addToCart(art);
-      }
-    });
-  }
 
   // --- API METODE ---
   placeOrder(orderRequest: OrderRequest) {
@@ -99,33 +87,30 @@ export class SalesService {
     this.selectedArticles.update((articles) => {
       const existing = articles.get(article.id);
 
-      if (existing) {
-        const newQuantity = existing.quantity + 1;
-        // IZMENA: Provera protiv totalStock
-        if (newQuantity > existing.totalStock) return articles;
-
-        const updatedMap = new Map(articles);
-        updatedMap.set(article.id, {...existing, quantity: newQuantity});
-        return updatedMap;
+      // Provera: ako već imamo max količinu ILI ako novog artikla nema na stanju
+      if (existing ? existing.quantity >= existing.totalStock : article.totalStock === 0) {
+        return articles;
       }
 
-      // IZMENA: Provera da li uopšte ima zaliha (totalStock)
-      if (article.totalStock === 0) return articles;
-
+      // 2. Kreiraj novu mapu samo kada je promena zagarantovana
       const updatedMap = new Map(articles);
 
-      // IZMENA: Destrukturiranje koristi totalStock
-      const {id, name, price, totalStock} = article;
-      updatedMap.set(id, {
-        id,
-        name,
-        price,
-        totalStock, // Mapiramo ispravno polje
-        quantity: 1,
-      } as SelectedSalesArticle);
+      if (existing) {
+        updatedMap.set(article.id, {
+          ...existing,
+          quantity: existing.quantity + 1
+        });
+      } else {
+        const { id, name, price, totalStock } = article;
+        updatedMap.set(id, {
+          id, name, price, totalStock,
+          quantity: 1
+        } as SelectedSalesArticle);
+      }
 
       return updatedMap;
     });
+
     this.lastAddedId.set(article.id);
   }
 

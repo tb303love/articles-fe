@@ -81,7 +81,7 @@
         <mat-card
           class="example-card"
           [class.disabled]="isOutOfStock"
-          (click)="addToCart(article, isOutOfStock)"
+          (click)="salesService.addToCart(article)"
         >
           <mat-card-header [title]="article.name">
             <mat-card-title>{{ article.name }}</mat-card-title>
