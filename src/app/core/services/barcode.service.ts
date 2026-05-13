@@ -1,12 +1,13 @@
 // barcode.service.ts
 import {inject, Injectable} from '@angular/core';
 import {WebSocketService} from './web-socket.service';
+import {InventoryUpdate} from '../model/barcode.model';
 
 @Injectable({providedIn: 'root'})
 export class BarcodeService {
   private readonly wsService = inject(WebSocketService);
 
-  // public inventoryScans$ = this.wsService.watchTopic('/topic/inventory');
-  public salesScans$ = this.wsService.watchTopic('/topic/sales');
+  salesScans$ = this.wsService.watchTopic<string>('/topic/sales');
+  inventoryScans$ = this.wsService.watchTopic<InventoryUpdate>('/topic/inventory');
 
 }
