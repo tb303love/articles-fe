@@ -8,17 +8,12 @@ export class WebSocketService {
   private rxStomp = new RxStomp();
 
   constructor() {
-    this.rxStomp.configure({
-      brokerURL: environment.webSocketUrl,
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-    });
+    this.rxStomp.configure({...environment.websocketConfig});
     this.rxStomp.activate();
   }
 
   watchTopic<T>(topic: string) {
-    return this.rxStomp.watch(topic).pipe(
+    return this.rxStomp.watch(`/topic/${topic}`).pipe(
       map(message => {
         try {
           // Pokušaj da parsiraš kao JSON (za inventory/StockEntry)
