@@ -85,6 +85,7 @@ export class Sales implements OnInit, OnDestroy {
       takeUntilDestroyed()
     ).subscribe(barcode => {
       const article = this.articlesStore.getArticleByBarcode(barcode);
+      console.log(article(),barcode);
       const art = article();
       if (art) {
         this.salesService.addToCart(art);

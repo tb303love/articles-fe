@@ -15,8 +15,8 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {filter, map} from 'rxjs';
-import {FileBrowserData, SalesArticle} from '../../../core/model';
+import {filter, race} from 'rxjs';
+import {FileBrowserData, SalesArticleWithExtra} from '../../../core/model';
 import {ArticleFormGroup} from '../../../core/model/article-form.model';
 import {FileReaderService} from '../../../core/services/file-reader';
 import {createImageUploadHandler} from '../../../core/utils/file-handlers';
@@ -25,10 +25,13 @@ import {CategoryStore} from '../../../store/category.store';
 import {FloatInputDirective} from '../../directives';
 import {mapFormControlsToFormData} from '../../mappers/mapArticleControlsToFormData';
 import {FileBrowser} from '../file-browser/file-browser';
-import initializeForm, {newBarCodeField} from './add-article-form-logic';
+import initializeForm, {createStockGroup, newBarCodeField} from './add-article-form-logic';
 import {MatSlideToggle} from '@angular/material/slide-toggle';
 import {BundleComponents} from './bundle-components/bundle-components';
 import {InitialStocks} from './initial-stocks/initial-stocks';
+import {BarcodeService} from '../../../core/services/barcode.service';
+import {mergeMap} from 'rxjs/operators';
+import {isStockAvailable} from './add-edit-article-util';
 
 @Component({
   selector: 'app-add-article-dialog',
@@ -60,11 +63,12 @@ import {InitialStocks} from './initial-stocks/initial-stocks';
 })
 export class AddArticleDialog implements OnDestroy {
   private readonly dialogRef = inject(MatDialogRef<AddArticleDialog>);
-  protected readonly dialogData: SalesArticle | null = inject(MAT_DIALOG_DATA);
+  protected readonly dialogData: SalesArticleWithExtra | null = inject(MAT_DIALOG_DATA);
   protected readonly articleStore = inject(ArticleStore);
   private readonly fileReaderService = inject(FileReaderService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly barcodeService = inject(BarcodeService);
   private readonly dialog = inject(MatDialog);
   private readonly injector = inject(Injector);
   protected readonly categoryStore = inject(CategoryStore);
@@ -114,11 +118,13 @@ export class AddArticleDialog implements OnDestroy {
     this.fileReaderService.loadImage(this.dialogData);
     this.categoryStore.loadAll();
 
+    this.barcodeService.setIsOpenModal(true);
+
     this.fileReaderService
       .getFile()
       .pipe(
         filter((dto) => dto.state === 'loaded'),
-        map(({image, event}) => {
+        mergeMap(({image, event}) => {
           if (event === 'load') {
             this.newArticleForm = initializeForm(
               this.dialogData,
@@ -131,16 +137,32 @@ export class AddArticleDialog implements OnDestroy {
               this.isBundle.set(true);
             }
             this.articleStore.setCurrentEditingArticle(this.dialogData?.id || null);
+            const stock = isStockAvailable(this.dialogData);
+            if (stock) {
+              const {quantity, expiryDate} = stock;
+              this.newArticleForm.controls.initialStocks.push(
+                createStockGroup(quantity, expiryDate, '')
+              );
+            }
+
             this.formReady.set(true);
           } else {
             this.newArticleForm.patchValue({image}, {emitEvent: true});
           }
-          return true
+          // this.barcodeService.inventoryScans$.pipe(
+          //   tap(({stock: {quantity, expiryDate}}) => {
+          //     this.newArticleForm.controls.initialStocks.push(
+          //       createStockGroup(quantity, expiryDate, '')
+          //     );
+          //   })
+          // )
+          return race(this.barcodeService.inventoryScans$, this.barcodeService.newArticle$)
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => {
-        this.cdr.detectChanges()
+      .subscribe((update) => {
+        console.log("Update", update);
+        this.cdr.detectChanges();
       });
   }
 
@@ -148,7 +170,7 @@ export class AddArticleDialog implements OnDestroy {
     if (this.newArticleForm.invalid) return;
     const value = mapFormControlsToFormData(this.newArticleForm.controls);
 
-    if (this.dialogData) {
+    if (this.dialogData && this.dialogData?.id) {
       this.articleStore.updateArticle(this.dialogData.id, value);
     } else {
       this.articleStore.createArticle(value);
@@ -160,7 +182,7 @@ export class AddArticleDialog implements OnDestroy {
       .subscribe(() => this.dialogRef.close());
   }
 
-  openFileExplorer() {
+  protected openFileExplorer() {
     this.dialog.open(FileBrowser, {
       width: '750px',
       data: {
@@ -192,6 +214,7 @@ export class AddArticleDialog implements OnDestroy {
   ngOnDestroy() {
     this.fileReaderService.terminateWorker();
     this.articleStore.setCurrentEditingArticle(null);
+    this.barcodeService.setIsOpenModal(false);
   }
 
   protected addNewBarcode() {

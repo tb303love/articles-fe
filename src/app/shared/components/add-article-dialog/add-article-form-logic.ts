@@ -1,6 +1,6 @@
 import {Injector} from '@angular/core';
 import {AsyncValidatorFn, FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
-import {SalesArticle} from '../../../core/model';
+import {SalesArticleWithExtra} from '../../../core/model';
 import {
   AddArticleFormControls,
   ArticleFormGroup,
@@ -15,6 +15,7 @@ import {
   uniqueValueValidator,
   validateImage
 } from '../../form-validators';
+import {ObjectUtils} from '../../../core/utils/util';
 
 /**
  * Kreira grupu za jednu seriju zaliha (Stock Batch)
@@ -51,7 +52,7 @@ export function createComponentGroup(
   });
 }
 
-function handleBarcodes(article: SalesArticle, formGroup: FormGroup<AddArticleFormControls>) {
+function handleBarcodes(article: SalesArticleWithExtra, formGroup: FormGroup<AddArticleFormControls>) {
   if (article && article.barcodes) {
     article.barcodes.forEach(code => {
       formGroup.controls.barcodes.push(new FormControl(code, {nonNullable: true}));
@@ -59,7 +60,7 @@ function handleBarcodes(article: SalesArticle, formGroup: FormGroup<AddArticleFo
   }
 }
 
-function handleBundle(article: SalesArticle, formGroup: FormGroup<AddArticleFormControls>) {
+function handleBundle(article: SalesArticleWithExtra, formGroup: FormGroup<AddArticleFormControls>) {
   if (article.composition && article.composition.length > 0) {
     article.composition.forEach((comp) => {
       formGroup.controls.components.push(
@@ -69,7 +70,7 @@ function handleBundle(article: SalesArticle, formGroup: FormGroup<AddArticleForm
   }
 }
 
-function handleStocks(article: SalesArticle, formGroup: FormGroup<AddArticleFormControls>) {
+function handleStocks(article: SalesArticleWithExtra, formGroup: FormGroup<AddArticleFormControls>) {
   if (article.stocks && article.stocks.length > 0) {
     article.stocks.forEach((stock) => {
       formGroup.controls.initialStocks.push(
@@ -83,7 +84,7 @@ function handleStocks(article: SalesArticle, formGroup: FormGroup<AddArticleForm
  * Inicijalizuje celu formu pri otvaranju (Create ili Edit)
  */
 export default function initializeForm(
-  article: SalesArticle | null,
+  article: SalesArticleWithExtra | null,
   articleStore: InstanceType<typeof ArticleStore>,
   injector: Injector,
   image: File | null,
@@ -93,9 +94,10 @@ export default function initializeForm(
     : [checkArticleName(articleStore, injector)];
 
   const formGroup = createFormGroup(nameAsyncValidators);
-
+  console.log(article)
   // Ako kreiramo NOVI artikal
-  if (!article) {
+  if (!article || !article.id || ObjectUtils.isEmptyObject(article)) {
+    console.log('OVDE SAM!');
     return formGroup;
   }
 

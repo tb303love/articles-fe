@@ -1,58 +1,59 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { BehaviorSubject, catchError, filter, map, switchMap, take, throwError } from 'rxjs';
-import { AuthService } from '../services/auth-service';
+import {HttpErrorResponse, HttpInterceptorFn} from '@angular/common/http';
+import {inject} from '@angular/core';
+import {BehaviorSubject, catchError, filter, switchMap, take, throwError} from 'rxjs';
+import {AuthService} from '../services/auth-service';
 
-// Ove varijable moraju biti VAN funkcije da bi bile zajedničke za sve pozive
 let isRefreshing = false;
 const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
 export const unautorizedInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
-  const router = inject(Router);
 
   return next(req).pipe(
     catchError((error) => {
+      // Reagujemo samo na 401 i 403
       if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
+
+        // Ako je greška pukla na login-u ili samom osvežavanju, nemoj upadati u petlju
         if (req.url.includes('/auth/login') || req.url.includes('/auth/refresh')) {
           return throwError(() => error);
         }
 
-        // Ako je refresh VEĆ U TOKU, nemoj okidati novi
+        // Ako je refresh VEĆ U TOKU, čekamo novi token unutar BehaviorSubject-a
         if (isRefreshing) {
-          // "Zaledi" ovaj zahtev dok subjekt ne dobije novi token
           return refreshTokenSubject.pipe(
             filter((token) => token !== null),
             take(1),
             switchMap((token) => {
-              const clonedReq = req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
+              const clonedReq = req.clone({setHeaders: {Authorization: `Bearer ${token}`}});
               return next(clonedReq);
             }),
           );
         }
 
-        // Ako NIJE u toku, pokreni refresh
+        // Pokrećemo proces osvežavanja
         isRefreshing = true;
-        refreshTokenSubject.next(null); // Resetujemo subjekt
+        refreshTokenSubject.next(null);
 
         return authService.refreshToken().pipe(
           switchMap((res) => {
             isRefreshing = false;
-            refreshTokenSubject.next(res.accessToken); // "Budimo" sve zahteve koji čekaju
+            refreshTokenSubject.next(res.accessToken); // Probuđeni su svi zahtevi na čekanju
 
             const clonedRequest = req.clone({
-              setHeaders: { Authorization: `Bearer ${res.accessToken}` },
+              setHeaders: {Authorization: `Bearer ${res.accessToken}`},
             });
             return next(clonedRequest);
           }),
           catchError((refreshError) => {
+            // OVDE DOLAZI GREŠKA KADA JE REFRESH TOKEN ISTEKAO (Tvoj 401 sa Spring-a)
             isRefreshing = false;
-            authService.logout();
-            return throwError(() => refreshError).pipe(
-              map(() => router.navigate(['/login'])),
-              map(() => refreshError)
-            );
+            refreshTokenSubject.next(null); // Resetujemo za sledeći put
+
+            // Koristimo javnu metodu koja čisti Signale, LocalStorage i radi ruter navigaciju
+            authService.clearSession();
+
+            return throwError(() => refreshError);
           }),
         );
       }

@@ -5,16 +5,16 @@ import {NotFound} from './not-found/not-found';
 
 export const routes: Routes = [
   // Javno dostupna ruta za prijavu
-  { path: 'login', component: Login },
+  {path: 'login', component: Login},
 
   // Početna ruta koja preusmerava na artikle
-  { path: '', redirectTo: '/artikli', pathMatch: 'full' },
+  {path: '', redirectTo: '/artikli', pathMatch: 'full'},
 
   // ARTIKLI: Zaštićeni i ulogom i loginom (Lazy Loaded)
   {
     path: 'artikli',
     canActivate: [authGuard, adminGuard], // SAMO ADMIN
-    loadComponent: () => import('./article-list/article-list').then((m) => m.ArticleList),
+    loadChildren: () => import('./article-list/article.routes').then((m) => m.ARTICLE_ROUTES),
   },
 
   // PRODAJA: Zaštićena samo loginom (Lazy Loaded)
@@ -25,5 +25,5 @@ export const routes: Routes = [
   },
 
   // Catch-all ruta za nepostojeće stranice
-  { path: '**', component: NotFound },
+  {path: '**', component: NotFound},
 ];

@@ -1,10 +1,12 @@
 import {computed, inject, Injectable, signal} from '@angular/core';
 import {MatDialog, MatDialogRef} from '@angular/material/dialog';
 import {WebSocketService} from './web-socket.service';
-import {AdbStatusModal} from '../../shared/components/adb-status-modal/adb-status-modal';
+import {AdbStatusModal} from '../../shared/components';
+import {EMPTY, switchMap} from 'rxjs';
+import {tap} from 'rxjs/operators';
+import {getRouteEnd$} from '../utils/getRouteEnd';
 
-// Mapirano prema novom Java enumu
-export type AdbMode = 'DISCONNECTED' | 'USB_CONNECTED' | 'USB_UNAUTHORIZED';
+export type AdbMode = 'DISCONNECTED' | 'USB_CONNECTED' | 'USB_UNAUTHORIZED' | null;
 
 @Injectable({providedIn: 'root'})
 export class AdbConnectionService {
@@ -15,31 +17,44 @@ export class AdbConnectionService {
   private _currentMode = signal<AdbMode | null>(null);
   private _progressMessage = signal<string>('Čekam USB konekciju...');
 
-  public adbStatus = computed(() => this._currentMode());
-  public progressMessage = computed(() => this._progressMessage());
+  adbStatus = computed(() => this._currentMode());
+  progressMessage = computed(() => this._progressMessage());
 
   constructor() {
     this.initWebSocketListeners();
   }
 
   private initWebSocketListeners() {
-    // 1. Slušamo promenu stanja
-    this.wsService.watchTopic('/topic/connection-mode').subscribe(mode => {
-      const newMode = mode as AdbMode;
-      this._currentMode.set(newMode);
 
-      if (newMode === 'USB_CONNECTED') {
-        // Ako je USB spojen i tunel postavljen, sklanjamo modal
-        this.closeBlockingDialog();
-      } else {
-        // Za DISCONNECTED ili UNAUTHORIZED, modal mora da stoji
-        this.openBlockingDialog();
-      }
-    });
+    getRouteEnd$().pipe(
+      switchMap((currentUrl) => {
+        const isLoginPage = currentUrl === '/login';
 
-    // 2. Slušamo poruke o progresu (Opis greške ili statusa)
-    this.wsService.watchTopic('/topic/adb-progress').subscribe(msg => {
-      this._progressMessage.set(msg as string);
+        if (isLoginPage) {
+          // Ako smo na loginu, gasimo dijalog i vraćamo prazan tok
+          // switchMap će automatski uraditi unsubscribe sa web socketa ako je bio aktivan
+          this.closeBlockingDialog();
+          return EMPTY;
+        }
+
+        // Ako NISMO na loginu, aktiviramo slušanje Web Socketa
+        return this.wsService.watchTopic<AdbMode>('connection-mode').pipe(
+          tap((mode) => {
+            this._currentMode.set(mode);
+
+            if (mode === 'USB_CONNECTED') {
+              this.closeBlockingDialog();
+            } else {
+              this.openBlockingDialog();
+            }
+          })
+        );
+      })
+    ).subscribe();
+
+    // Progres ostaje odvojen
+    this.wsService.watchTopic<string>('adb-progress').subscribe(msg => {
+      this._progressMessage.set(msg);
     });
   }
 
@@ -49,7 +64,7 @@ export class AdbConnectionService {
     this.dialogRef = this.dialog.open(AdbStatusModal, {
       disableClose: true,
       panelClass: 'adb-status-dialog',
-      width: '380px', // Može i malo uži jer je manje teksta
+      width: '380px',
     });
   }
 

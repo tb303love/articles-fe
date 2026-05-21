@@ -14,4 +14,12 @@ export class SnackbarService {
       verticalPosition: 'bottom', // 'top' | 'bottom'
     });
   }
+
+  showError(message: string, action: string) {
+    this.snackBar.open(message, action, {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+    })
+  }
 }

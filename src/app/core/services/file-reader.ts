@@ -1,13 +1,18 @@
-import { Injectable, signal, WritableSignal } from '@angular/core';
-import { inject } from '@angular/core/primitives/di';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { SalesArticle } from '../model';
+import {Injectable, signal, WritableSignal} from '@angular/core';
+import {inject} from '@angular/core/primitives/di';
+import {DomSanitizer, SafeResourceUrl} from '@angular/platform-browser';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {SalesArticle} from '../model';
 
 interface ImageLoadingDto {
   state: 'init' | 'loading' | 'loaded';
   image: File | null;
   event: 'load' | 'read' | null;
+}
+
+interface FileServiceStatus extends ImageLoadingDto {
+  file: File | null;
+  url: string | null;
 }
 
 @Injectable({
@@ -27,7 +32,7 @@ export class FileReaderService {
 
   terminateWorker() {
     this.imagePreview.set(null);
-    this.imagePreviewSubject.next({ state: 'init', image: null, event: null });
+    this.imagePreviewSubject.next({state: 'init', image: null, event: null});
     this.fileReaderWorker?.terminate();
   }
 
@@ -43,21 +48,16 @@ export class FileReaderService {
       });
 
       // Listen for messages from the worker thread
-      this.fileReaderWorker.onmessage = ({ data }) => {
-        if (data.event === 'load') {
-          this.imagePreviewSubject.next({ state: 'loaded', image: data.file, event: 'load' });
+      this.fileReaderWorker.onmessage = ({data: {file, event, url}}: MessageEvent<FileServiceStatus>) => {
+        if (event === 'load') {
+          this.imagePreviewSubject.next({state: 'loaded', image: file, event: 'load'});
         } else {
-          this.imagePreviewSubject.next({ state: 'loaded', image: data.file, event: 'read' });
+          this.imagePreviewSubject.next({state: 'loaded', image: file, event: 'read'});
         }
 
-        if (data.url) {
-          this.imagePreview.update(() => this.sanitizer.bypassSecurityTrustUrl(data.url as string));
+        if (url) {
+          this.imagePreview.update(() => this.sanitizer.bypassSecurityTrustUrl(url));
         }
-      };
-
-      // Handle potential errors from the worker
-      this.fileReaderWorker.onerror = (error) => {
-        // this.messageSubject.error(error);
       };
     } else {
       console.error('Web workers are not supported in this environment.');
@@ -87,6 +87,6 @@ export class FileReaderService {
   }
 
   readImage(file: File) {
-    this.fileReaderWorker?.postMessage({ file, event: 'read' });
+    this.fileReaderWorker?.postMessage({file, event: 'read'});
   }
 }

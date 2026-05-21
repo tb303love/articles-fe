@@ -10,26 +10,28 @@ export const connectionErrorInterceptor: HttpInterceptorFn = (req, next) => {
     retry({
       count: 2,
       delay: (error: HttpErrorResponse) => {
-        // Retry radimo samo ako je server stvarno "nedostupan" (0 ili Proxy 500)
         const isProxyError = error.status === 500 && (!error.error || error.error instanceof ProgressEvent);
         if (error.status === 0 || isProxyError) {
-          return timer(1000); 
+          return timer(1000);
         }
-        throw error; // Za sve ostale greške (401, 404, pravi 500) odmah idi na catchError
+        throw error; // Sve ostale greške (409, 401) odmah prosledi dalje
       },
     }),
     catchError((error: HttpErrorResponse) => {
-      // Detekcija specifičnih stanja
       const isNoInternet = !navigator.onLine;
       const isProxyError = error.status === 500 && (!error.error || error.error instanceof ProgressEvent);
       const isServerDown = error.status === 0 || isProxyError;
 
       if (isNoInternet) {
         snackbar.openSnackBar('Nema internet veze', 'Proverite vašu mrežu.');
-      } 
+      }
       else if (isServerDown) {
-        // Ovde hvatamo tvoj ECONNREFUSED koji se maskira u 500 ili je 0
         snackbar.openSnackBar('Server nedostupan', 'Naš servis trenutno nije u funkciji. Pokušajte kasnije.');
+      }
+      // Reakcija na duple bar kodove / dupli naziv iz Spring Boot-a
+      else if (error.status === 409) {
+        const backendMessage = error.error?.message || 'Podaci već postoje u bazi.';
+        snackbar.openSnackBar('Konflikt', backendMessage);
       }
 
       return throwError(() => error);

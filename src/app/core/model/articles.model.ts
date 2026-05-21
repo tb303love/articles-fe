@@ -1,3 +1,5 @@
+import {BarCodeScan} from './barcode.model';
+
 export interface ArticleImage {
   id: number;
   fileName: string;
@@ -24,6 +26,10 @@ export interface SalesArticle extends Omit<ArticleResponse, 'category'> {
   // totalStock i stocks su već tu jer su u ArticleResponse
 }
 
+export interface SalesArticleWithExtra extends SalesArticle {
+  stock?: BarCodeScan;
+}
+
 export type SelectedSalesArticle = Omit<
   SalesArticle,
   'category' | 'image' | 'admissionPrice1' | 'admissionPrice2'
@@ -48,7 +54,7 @@ export interface ArticleResponse {
   price: number;
   admissionPrice1: number;
   admissionPrice2: number;
-  active:boolean;
+  active: boolean;
   totalStock: number; // Suma svih serija (umesto availableStock)
   stocks: ArticleStock[]; // NOVO: Ovde stižu rokovi sa backenda
   image: ArticleImage | null;

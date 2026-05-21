@@ -17,11 +17,11 @@ export class GenericDialogEntryComponent implements OnInit {
 
   constructor() {
     // Uzimanje state objekta koji je poslat kroz routerLink
-    const navigation = this.router.getCurrentNavigation();
-    const stateData = navigation?.extras.state;
+    const currentNav = this.router.currentNavigation();
+    const routerState = currentNav?.extras?.state || {};
 
-    if (stateData) {
-      this.state = {...stateData['article'], stock: {...stateData['stock']}};
+    if (routerState) {
+      this.state = {...routerState['article'], stock: {...routerState['stock']}};
     }
   }
 
@@ -31,7 +31,7 @@ export class GenericDialogEntryComponent implements OnInit {
     // 2. Skupljamo sve parametre iz URL-a (npr. :id, :type) i query parametre
     const params = this.route.snapshot.params;
     const queryParams = this.route.snapshot.queryParams;
-    console.log('STATE', this.state);
+
     // 3. Otvaramo modal i prosleđujemo sakupljene podatke
     const dialogRef = this.dialog.open(componentToOpen, {
       width: '720px', // Savršena širina za ovaj layout

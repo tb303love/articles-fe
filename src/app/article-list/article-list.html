@@ -18,7 +18,7 @@
           placeholder="Npr. Coca Cola..."
         />
         @if (articlesStore.filterQuery()) {
-        <button mat-icon-button matSuffix (click)="clearSearch()">
+        <button mat-icon-button matSuffix (click)="clearSearch()" type="button">
           <mat-icon>close</mat-icon>
         </button>
         }
@@ -27,6 +27,7 @@
 
       <div class="header-buttons">
         <button
+          type="button"
           mat-icon-button
           [color]="showAdmissionPrices() ? 'primary' : ''"
           (click)="toggleAdmissionPrices()"
@@ -34,10 +35,10 @@
         >
           <mat-icon>{{ showAdmissionPrices() ? 'visibility' : 'visibility_off' }}</mat-icon>
         </button>
-        <button mat-stroked-button color="primary" (click)="openFileExplorer()">
+        <button mat-stroked-button color="primary" (click)="openFileExplorer()" type="button">
           <mat-icon>file_upload</mat-icon> Uvoz
         </button>
-        <button mat-raised-button color="accent" (click)="openAddArticleDialog()">
+        <button mat-raised-button color="accent" routerLink="new" type="button">
           <mat-icon>add</mat-icon> Novi
         </button>
       </div>
@@ -65,7 +66,6 @@
         *cdkVirtualFor="let row of articlesStore.filteredArticles(); trackBy: trackByFn"
         class="grid-row clickable"
         [class.show-addmission-prices]="showAdmissionPrices()"
-        (dblclick)="editArticle(row)"
         [appHoverOverlay]="custom"
         [appHoverOverlayData]="row"
       >
@@ -94,6 +94,7 @@
 
             <div class="icon-buttons">
               <button
+                type="button"
                 mat-icon-button
                 color="warn"
                 [appConfirmDialog]="{
@@ -108,6 +109,9 @@
               >
                 <mat-icon>delete</mat-icon>
               </button>
+              <button mat-icon-button color="primary" type="button" [routerLink]="[row.id]" [state]="{article: row}">
+                <mat-icon>edit</mat-icon>
+              </button>
             </div>
           </div>
         </div>
@@ -120,12 +124,12 @@
   <div class="centered-empty-state">
     <div class="stack-buttons">
       <mat-icon class="empty-illustration">inventory_2</mat-icon>
-      <h1 class="empty-title">Vaš inventar je prazan</h1>
-      <button mat-raised-button color="accent" class="huge-btn" (click)="openAddArticleDialog()">
+      <h1 class="empty-title">Vaš ineventar je prazan</h1>
+      <button mat-raised-button color="accent" class="huge-btn" routerLink="new" type="button">
         <mat-icon>add</mat-icon> DODAJ PRVI ARTIKAL
       </button>
       <div class="separator"><span>ili</span></div>
-      <button mat-stroked-button color="primary" class="huge-btn" (click)="openFileExplorer()">
+      <button mat-stroked-button color="primary" class="huge-btn" (click)="openFileExplorer()" type="button">
         <mat-icon>file_upload</mat-icon> UVEZI IZ EXCEL-A
       </button>
     </div>
@@ -144,3 +148,4 @@
     }
   </ng-template>
 </div>
+<router-outlet/>

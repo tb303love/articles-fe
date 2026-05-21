@@ -9,11 +9,11 @@ import {MatInputModule} from '@angular/material/input';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {FileBrowserData, SalesArticle} from '../core/model';
 import {createExcelImportHandler} from '../core/utils/file-handlers';
-import {AddArticleDialog} from '../shared/components/add-article-dialog/add-article-dialog';
-import {FileBrowser} from '../shared/components/file-browser/file-browser';
+import {AddArticleDialog, FileBrowser} from '../shared/components';
 import {ConfirmDirective, HoverOverlayDirective} from '../shared/directives';
 import {ImageDomSanitizerPipe} from '../shared/pipes';
-import {ArticleStore} from '../store/article/article.store';
+import {ArticleStore} from '../store';
+import {ActivatedRoute, RouterLink, RouterOutlet} from '@angular/router';
 
 @Component({
   selector: 'app-article-list',
@@ -31,6 +31,8 @@ import {ArticleStore} from '../store/article/article.store';
     MatInputModule,
     MatProgressBarModule,
     ScrollingModule,
+    RouterOutlet,
+    RouterLink
   ],
   templateUrl: './article-list.html',
   styleUrl: './article-list.scss',
@@ -39,6 +41,7 @@ export class ArticleList implements OnInit {
   protected readonly articlesStore = inject(ArticleStore);
   private readonly dialog = inject(MatDialog);
   private injector = inject(Injector);
+  private readonly route = inject(ActivatedRoute);
 
   // ... u klasi komponente
   protected showAdmissionPrices = signal(false); // Podrazumevano sakriveno

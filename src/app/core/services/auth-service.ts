@@ -64,7 +64,7 @@ export class AuthService {
       });
   }
 
-  private clearSession() {
+  clearSession() {
     // 2. Čišćenje storage-a
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
