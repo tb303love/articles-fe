@@ -13,7 +13,7 @@ export class GenericDialogEntryComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
-  private state = {};
+  private readonly state = {};
 
   constructor() {
     // Uzimanje state objekta koji je poslat kroz routerLink

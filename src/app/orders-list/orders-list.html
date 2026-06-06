@@ -41,7 +41,7 @@
     } @empty {
       <div class="empty-state">
         <mat-icon>history</mat-icon>
-        <p>Nema prodaje za danas u grupi {{ orderStore.filterStatus() | salesType }}</p>
+        <p>Nema {{ orderStore.filterStatus() | salesType }} stavki</p>
       </div>
     }
   </div>
