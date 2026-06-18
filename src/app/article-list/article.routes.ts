@@ -2,7 +2,7 @@ import {Routes} from '@angular/router';
 import {AddArticleDialog, GenericDialogEntryComponent} from '../shared/components';
 import {modalComponentGuard} from '../shared/components/generic-dialog-entry/modalComponentGuard';
 
-export const ARTICLE_ROUTES: Routes = [
+const articleRoutes: Routes = [
   {
     path: '', // Prazna putanja predstavlja roditelja (/dashboard)
     loadComponent: () => import('./article-list').then(m => m.ArticleList),
@@ -26,3 +26,4 @@ export const ARTICLE_ROUTES: Routes = [
     ]
   }
 ];
+ export default articleRoutes;
