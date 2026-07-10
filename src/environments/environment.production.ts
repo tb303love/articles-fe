@@ -5,7 +5,7 @@ export const environment = {
   // Isto važi i za slike
   imageBaseUrl: '/images',
   websocketConfig: {
-    brokerURL: 'wss://localhost:443/ws-barcode',
+    brokerURL: 'ws://localhost:8080/ws-barcode',
     reconnectDelay: 5000,
     heartbeatIncoming: 4000,
     heartbeatOutgoing: 4000,

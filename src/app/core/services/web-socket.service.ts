@@ -1,28 +1,56 @@
-import {Injectable} from '@angular/core';
-import {RxStomp} from '@stomp/rx-stomp';
-import {map} from 'rxjs/operators';
-import {environment} from '../../../environments/environment';
+// src/app/services/web-socket.service.ts
+import { Injectable } from '@angular/core';
+import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
+import { Observable, Subject, timer } from 'rxjs';
+import { map, retry, filter } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
-@Injectable({providedIn: 'root'})
+export type WsTopic = 'sales' | 'inventory' | 'new-article' | 'info'| 'connection-mode' | 'adb-progress';
+
+export interface RustWsPoruka {
+   tip: WsTopic;
+   podaci: any;
+}
+
+@Injectable({ providedIn: 'root' })
 export class WebSocketService {
-  private rxStomp = new RxStomp();
+   private socket$!: WebSocketSubject<any>;
+   private poruke$ = new Subject<RustWsPoruka>();
 
-  constructor() {
-    this.rxStomp.configure({...environment.websocketConfig});
-    this.rxStomp.activate();
-  }
+   constructor() {
+      this.inicijalizujCistWs();
+   }
 
-  watchTopic<T>(topic: string) {
-    return this.rxStomp.watch(`/topic/${topic}`).pipe(
-      map(message => {
-        try {
-          // Pokušaj da parsiraš kao JSON (za inventory/StockEntry)
-          return JSON.parse(message.body) as T;
-        } catch (e) {
-          // Ako ne uspe, vrati sirov tekst (za tvoj sales barkod)
-          return message.body as T;
-        }
-      }),
-    );
-  }
+   private inicijalizujCistWs() {
+      const wsUrl = environment.websocketConfig?.brokerURL;
+
+      this.socket$ = webSocket({
+         url: wsUrl,
+         // Pošto Angular samo prima, serializer nam tehnički i ne treba, ali ostaje kao default
+         deserializer: (msg) => JSON.parse(msg.data)
+      });
+
+      this.socket$.pipe(
+         retry({
+            delay: (error) => {
+               console.warn('WS: Veza prekinuta. Pokušavam rekonekciju za 3s...', error);
+               return timer(3000);
+            }
+         })
+      ).subscribe({
+         next: (poruka: RustWsPoruka) => this.poruke$.next(poruka),
+         error: (err) => console.error('WS Kritična greška:', err),
+         complete: () => console.log('WS veza zatvorena.')
+      });
+   }
+
+   /**
+    * Slušanje poruka prema "tipu" (sales, inventory, new-article, info)
+    */
+   watchTopic<T>(topic: WsTopic): Observable<T> {
+      return this.poruke$.asObservable().pipe(
+         filter(poruka => poruka.tip === topic),
+         map(poruka => poruka.podaci as T)
+      );
+   }
 }
