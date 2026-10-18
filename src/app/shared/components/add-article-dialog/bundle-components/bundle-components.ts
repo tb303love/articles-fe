@@ -1,4 +1,4 @@
-import {Component, computed, inject, input, OnInit} from '@angular/core';
+import {Component, computed, inject, input, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {MatError, MatFormField, MatInput} from '@angular/material/input';
 import {MatIcon} from '@angular/material/icon';
 import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from '@angular/material/autocomplete';
@@ -23,6 +23,7 @@ import {toSignal} from '@angular/core/rxjs-interop';
     MatError
   ],
   templateUrl: './bundle-components.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './bundle-components.scss',
 })
 export class BundleComponents implements OnInit {

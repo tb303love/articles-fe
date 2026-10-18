@@ -1,16 +1,17 @@
 import {CommonModule} from '@angular/common';
 import {
-   Component,
-   DestroyRef,
-   effect,
-   ElementRef,
-   HostListener,
-   inject,
-   model,
-   OnDestroy,
-   OnInit,
-   untracked,
-   viewChild,
+  Component,
+  DestroyRef,
+  effect,
+  ElementRef,
+  HostListener,
+  inject,
+  model,
+  OnDestroy,
+  OnInit,
+  untracked,
+  viewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {FormsModule} from '@angular/forms';
@@ -55,6 +56,7 @@ import {filter, map} from 'rxjs';
       LongPressDirective,
    ],
    templateUrl: './sales.html',
+   changeDetection: ChangeDetectionStrategy.Eager,
    styleUrl: './sales.scss',
 })
 export class Sales implements OnInit, OnDestroy {

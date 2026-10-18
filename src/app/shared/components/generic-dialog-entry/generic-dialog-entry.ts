@@ -1,4 +1,4 @@
-import {Component, DestroyRef, inject, OnInit, Type} from '@angular/core';
+import {Component, DestroyRef, inject, OnInit, Type, ChangeDetectionStrategy} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {ActivatedRoute, Router} from '@angular/router';
 import {mergeMap} from 'rxjs/operators';
@@ -6,6 +6,7 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 @Component({
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: ''
 })
 export class GenericDialogEntryComponent implements OnInit {

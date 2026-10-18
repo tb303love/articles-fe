@@ -1,5 +1,5 @@
 import {CommonModule} from '@angular/common';
-import {Component, inject, input} from '@angular/core';
+import {Component, inject, input, ChangeDetectionStrategy} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatCardModule} from '@angular/material/card';
@@ -29,6 +29,7 @@ import {MatTooltip} from '@angular/material/tooltip';
     MatTooltip,
   ],
   templateUrl: './orders-list.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './orders-list.scss',
 })
 export class OrdersList {

@@ -57,7 +57,7 @@
               @let av = newArticleForm.controls.active.value;
               {{ av ? 'Aktivan' : 'Neaktivan' }}
             </mat-slide-toggle>
-            @let errors = newArticleForm.get('name')?.errors;
+            @let errors = $safeNavigationMigration(newArticleForm.get('name')?.errors);
             <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
               <mat-label>Naziv artikla</mat-label>
               <input matInput formControlName="name"/>

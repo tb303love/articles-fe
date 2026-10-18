@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, inject, input, linkedSignal, OnDestroy, Output, viewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, inject, input, linkedSignal, OnDestroy, Output, viewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Subject, timer, Subscription } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
@@ -6,6 +6,7 @@ import { switchMap, takeUntil, tap } from 'rxjs/operators';
   selector: 'app-number-spinner',
   standalone: true,
   templateUrl: './number-spinner.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './number-spinner.scss',
 })
 export class NumberSpinner implements OnDestroy {

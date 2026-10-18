@@ -1,6 +1,6 @@
 import {ScrollingModule} from '@angular/cdk/scrolling';
 import {CommonModule, CurrencyPipe} from '@angular/common';
-import {Component, inject, Injector, OnInit, signal,} from '@angular/core';
+import {Component, inject, Injector, OnInit, signal, ChangeDetectionStrategy} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
@@ -35,6 +35,7 @@ import {ActivatedRoute, RouterLink, RouterOutlet} from '@angular/router';
     RouterLink
   ],
   templateUrl: './article-list.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './article-list.scss',
 })
 export class ArticleList implements OnInit {

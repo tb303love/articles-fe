@@ -1,5 +1,5 @@
 import {CommonModule} from '@angular/common';
-import {ChangeDetectorRef, Component, computed, DestroyRef, inject, Injector, OnDestroy, signal,} from '@angular/core';
+import {ChangeDetectorRef, Component, computed, DestroyRef, inject, Injector, OnDestroy, signal, ChangeDetectionStrategy} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {FormArray, ReactiveFormsModule} from '@angular/forms';
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
@@ -59,6 +59,7 @@ import {isStockAvailable} from './add-edit-article-util';
     BundleComponents,
     InitialStocks,
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [provideNativeDateAdapter()],
 })
 export class AddArticleDialog implements OnDestroy {

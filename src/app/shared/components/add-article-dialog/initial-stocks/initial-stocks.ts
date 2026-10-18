@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, ChangeDetectionStrategy} from '@angular/core';
 import {FormArray, FormGroupDirective, ReactiveFormsModule} from '@angular/forms';
 import {createStockGroup} from '../add-article-form-logic';
 import {MatInputModule} from '@angular/material/input';
@@ -23,6 +23,7 @@ import {CommonModule} from '@angular/common';
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './initial-stocks.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './initial-stocks.scss',
 })
 export class InitialStocks {

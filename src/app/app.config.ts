@@ -1,4 +1,4 @@
-import {provideHttpClient, withInterceptors} from '@angular/common/http';
+import {provideHttpClient, withInterceptors, withXhr} from '@angular/common/http';
 import {ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners} from '@angular/core';
 import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
 import {provideRouter} from '@angular/router';
@@ -13,7 +13,7 @@ export const appConfig: ApplicationConfig = {
    providers: [
       provideBrowserGlobalErrorListeners(),
       provideRouter(appRoutes),
-      provideHttpClient(
+      provideHttpClient(withXhr(), 
          withInterceptors([jwtInterceptor, unautorizedInterceptor, connectionErrorInterceptor]),
       ),
       {provide: DateAdapter, useClass: CustomDateAdapter},

@@ -1,4 +1,4 @@
-import {Component, ElementRef, HostListener, viewChild} from '@angular/core';
+import {Component, ElementRef, HostListener, viewChild, ChangeDetectionStrategy} from '@angular/core';
 import * as THREE from 'three';
 import {FontLoader} from 'three/examples/jsm/loaders/FontLoader.js';
 import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
@@ -7,6 +7,7 @@ import {TextGeometry} from 'three/examples/jsm/geometries/TextGeometry.js';
   selector: 'app-webgl-screen-saver',
   imports: [],
   templateUrl: './webgl-screen-saver.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './webgl-screen-saver.scss',
 })
 export class WebglScreenSaver {

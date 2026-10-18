@@ -1,5 +1,5 @@
 import { CommonModule, KeyValuePipe } from '@angular/common';
-import { Component, ElementRef, input, output, viewChild, viewChildren } from '@angular/core';
+import { Component, ElementRef, input, output, viewChild, viewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { SelectedSalesArticle } from '../core/model';
@@ -18,6 +18,7 @@ import { ConfirmDirective } from '../shared/directives';
     ConfirmDirective,
   ],
   templateUrl: './cart-list.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './cart-list.scss',
 })
 export class CartList {

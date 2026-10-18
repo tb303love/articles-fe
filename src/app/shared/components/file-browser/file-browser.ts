@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -24,6 +24,7 @@ import { FileEntry, FileSystemService } from '../../../core/services/file-system
     MatProgressSpinnerModule,
   ],
   templateUrl: './file-browser.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './file-browser.scss',
 })
 export class FileBrowser {

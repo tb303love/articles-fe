@@ -1,5 +1,5 @@
 import {DatePipe} from '@angular/common';
-import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatToolbarModule} from '@angular/material/toolbar';
@@ -11,6 +11,7 @@ import {ArticleStore} from '../store/article/article.store';
   selector: 'app-navigation',
   imports: [MatToolbarModule, MatButtonModule, MatIconModule, RouterLink, DatePipe],
   templateUrl: './navigation.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './navigation.scss',
 })
 export class Navigation implements OnInit, OnDestroy {

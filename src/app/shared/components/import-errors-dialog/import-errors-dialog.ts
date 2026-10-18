@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,6 +9,7 @@ import { MatTableModule } from '@angular/material/table';
   standalone: true,
   imports: [MatDialogModule, MatTableModule, MatButtonModule, MatIconModule],
   templateUrl: './import-errors-dialog.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .error-title {

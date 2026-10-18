@@ -1,5 +1,5 @@
 import {CommonModule} from '@angular/common';
-import {Component, computed, inject, input} from '@angular/core';
+import {Component, computed, inject, input, ChangeDetectionStrategy} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
 import {MatExpansionModule} from '@angular/material/expansion';
@@ -25,6 +25,7 @@ import {OrderStore} from '../store/order/order.store';
     LongPressDirective
   ],
   templateUrl: './order-list-item.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './order-list-item.scss',
 })
 export class OrderListItem {

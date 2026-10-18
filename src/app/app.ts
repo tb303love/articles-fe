@@ -1,4 +1,4 @@
-import {Component, DOCUMENT, effect, inject, Renderer2} from '@angular/core';
+import {Component, DOCUMENT, effect, inject, Renderer2, ChangeDetectionStrategy} from '@angular/core';
 import {Router, RouterOutlet} from '@angular/router';
 import {Navigation} from './navigation/navigation';
 import {AdbConnectionService} from './core/services/adb-connection.service';
@@ -13,6 +13,7 @@ import {SnackbarService} from './core/services/snackbar-service';
   selector: 'app-root',
   imports: [RouterOutlet, Navigation, WebglScreenSaver],
   templateUrl: './app.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app.scss',
 })
 export class App {
