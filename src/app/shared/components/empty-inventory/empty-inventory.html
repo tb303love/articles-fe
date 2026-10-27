@@ -1,0 +1,17 @@
+<div class="empty-state">
+  <div class="illustration">
+    <mat-icon>inventory_2</mat-icon>
+  </div>
+  <h1 class="title">Vaš inventar je prazan</h1>
+  <p class="subtitle">Dodajte artikle ručno ili ih uvezite iz Excel tabele.</p>
+
+  <div class="actions">
+    <button mat-raised-button color="accent" class="huge-btn" (click)="addArticle.emit()" type="button">
+      <mat-icon>add</mat-icon> DODAJ PRVI ARTIKAL
+    </button>
+    <div class="separator"><span>ili</span></div>
+    <button mat-stroked-button color="primary" class="huge-btn-outline" (click)="importExcel.emit()" type="button">
+      <mat-icon>file_upload</mat-icon> UVEZI IZ EXCEL-A
+    </button>
+  </div>
+</div>
