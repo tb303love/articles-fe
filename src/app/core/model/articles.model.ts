@@ -63,6 +63,7 @@ export interface ArticleResponse {
     articleId: number;
     name: string;
     quantity: number;
+    availableStock: number; // Zaliha komponente u trenutku učitavanja
   }[] | null;
 }
 

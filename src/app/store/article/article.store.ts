@@ -13,9 +13,8 @@ export const ArticleStore = signalStore(
   withArticleMethods(),
   withHooks({
     onInit(store, stockSync = inject(StockSyncService)) {
-      stockSync.stockUpdate$.subscribe(() => {
-        store.loadAll(store.searchTerm()); // Važno: searchTerm mora biti pozvan kao funkcija ()
-      });
+      // Posle prodaje zalihe su se promenile - povlačimo sveže stanje za trenutnu pretragu
+      stockSync.stockUpdate$.subscribe(() => store.reload());
     },
   }),
 );

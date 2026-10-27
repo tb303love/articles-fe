@@ -1,28 +1,28 @@
-<div [formGroup]="parentForm">
+<div>
   <div class="header">
     <h4>Novi ulaz robe</h4>
-    <button mat-icon-button color="primary" type="button" (click)="addStock()" [disabled]="stocks.invalid">
+    <button mat-icon-button color="primary" type="button" (click)="addStock()" [disabled]="stocks()().invalid()">
       <mat-icon>add</mat-icon>
     </button>
   </div>
-  <div formArrayName="initialStocks">
-    @for (_ of stocks.controls; track $index) {
-      <div [formGroupName]="$index" class="stock-row">
+  <div>
+    @for (stock of stocks(); track $index) {
+      <div class="stock-row">
         <mat-form-field appearance="outline" class="small-field">
-          <input matInput type="number" formControlName="quantity" placeholder="Kom"/>
+          <input matInput type="number" [formField]="stock.quantity" placeholder="Kom"/>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <input
             matInput
             [matDatepicker]="p"
-            formControlName="expirationDate"
+            [formField]="stock.expirationDate"
             placeholder="Rok"
           />
           <mat-datepicker-toggle matSuffix [for]="p"/>
           <mat-datepicker #p/>
         </mat-form-field>
         <mat-form-field appearance="outline" class="small-field">
-          <input matInput type="text" formControlName="batchNumber" placeholder="LOT"/>
+          <input matInput type="text" [formField]="stock.batchNumber" placeholder="LOT"/>
         </mat-form-field>
         <button mat-icon-button color="warn" type="button" (click)="removeStock($index)">
           <mat-icon>delete</mat-icon>

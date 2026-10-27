@@ -1,5 +1,5 @@
 import {DatePipe} from '@angular/common';
-import {Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy} from '@angular/core';
+import {Component, effect, inject, OnDestroy, OnInit, signal, untracked, ChangeDetectionStrategy} from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {MatToolbarModule} from '@angular/material/toolbar';
@@ -19,6 +19,15 @@ export class Navigation implements OnInit, OnDestroy {
   protected readonly articleStore = inject(ArticleStore);
   protected currentTime = signal(new Date());
   private intervalId: any;
+
+  constructor() {
+    // Linkovi zavise od broja artikala na serveru - povlačimo ga čim je korisnik prijavljen
+    effect(() => {
+      if (this.auth.isAuthenticated()) {
+        untracked(() => this.articleStore.loadCount());
+      }
+    });
+  }
 
   ngOnInit() {
     this.intervalId = setInterval(() => {

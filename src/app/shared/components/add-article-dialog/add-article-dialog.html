@@ -20,7 +20,7 @@
   </header>
 
   @if (formReady()) {
-    <form [formGroup]="newArticleForm" (ngSubmit)="onSubmit()">
+    <form [formRoot]="articleForm">
       <mat-dialog-content class="form-content">
         <div class="form-layout">
           <!-- IMAGE SECTION -->
@@ -53,22 +53,18 @@
 
           <!-- FIELDS SECTION -->
           <div class="grid-item fields-section">
-            <mat-slide-toggle formControlName="active">
-              @let av = newArticleForm.controls.active.value;
-              {{ av ? 'Aktivan' : 'Neaktivan' }}
+            <mat-slide-toggle [formField]="articleForm.active">
+              {{ articleForm.active().value() ? 'Aktivan' : 'Neaktivan' }}
             </mat-slide-toggle>
-            @let errors = $safeNavigationMigration(newArticleForm.get('name')?.errors);
+            @let name = articleForm.name();
             <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
               <mat-label>Naziv artikla</mat-label>
-              <input matInput formControlName="name"/>
-              @if (articleStore.loadingStatus().checkName) {
+              <input matInput [formField]="articleForm.name"/>
+              @if (name.pending()) {
                 <mat-hint>Proveravam...</mat-hint>
               }
-              @if (errors?.['required']) {
-                <mat-error>Ime je obavezno</mat-error>
-              }
-              @if (errors?.['nameTaken']) {
-                <mat-error>Ime je zauzeto</mat-error>
+              @for (error of name.errors(); track error.kind) {
+                <mat-error>{{ error.message }}</mat-error>
               }
             </mat-form-field>
 
@@ -76,9 +72,8 @@
               <mat-label>Kategorija</mat-label>
               <input
                 matInput
-                formControlName="category"
+                [formField]="articleForm.category"
                 [matAutocomplete]="autoCat"
-                (input)="onCategoryTyping($event)"
               />
               <mat-autocomplete #autoCat="matAutocomplete">
                 @for (cat of filteredCategories(); track cat) {
@@ -87,14 +82,14 @@
               </mat-autocomplete>
             </mat-form-field>
             <mat-divider/>
-            <div class="barcodes-container" formArrayName="barcodes">
+            <div class="barcodes-container">
               <button matButton type="button" (click)="addNewBarcode()">Dodaj barkod</button>
-              @for (_ of barcodes.controls; track $index) {
+              @for (barcode of articleForm.barcodes; track $index) {
                 <div class="barcodes">
                   <mat-form-field appearance="outline">
-                    <input matInput type="text" placeholder="Barkod" [formControlName]="$index">
+                    <input matInput type="text" placeholder="Barkod" [formField]="barcode">
                   </mat-form-field>
-                  <button matIconButton color="warn" type="button" (click)="barcodes.removeAt($index)">
+                  <button matIconButton color="warn" type="button" (click)="removeBarcode($index)">
                     <mat-icon>delete</mat-icon>
                   </button>
                 </div>
@@ -106,37 +101,41 @@
             <div class="price-row">
               <mat-form-field appearance="outline">
                 <mat-label>Prodajna cena</mat-label>
-                <input matInput appFloatInput formControlName="price"/>
+                <input matInput appFloatInput [formField]="articleForm.price"/>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Ulazna 1</mat-label>
-                <input matInput appFloatInput formControlName="admissionPrice1"/>
+                <input matInput appFloatInput [formField]="articleForm.admissionPrice1"/>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Ulazna 2</mat-label>
-                <input matInput appFloatInput formControlName="admissionPrice2"/>
+                <input matInput appFloatInput [formField]="articleForm.admissionPrice2"/>
               </mat-form-field>
             </div>
           </div>
 
           <!-- BOTTOM SECTION -->
           <div class="grid-item bundle-full-width">
-            @if(articleStore.countWithStock()) {
+            @if(canBuildBundle()) {
               <div class="bundle-toggle mb-3">
-                <mat-checkbox
-                  (change)="toggleBundle($event.checked)"
-                  [checked]="isBundle()"
-                >
+                <mat-checkbox [formField]="articleForm.isBundle">
                   Ovo je Bundle (Paket)
                 </mat-checkbox>
               </div>
               <!-- SEKCIJA ZA KOMPONENTE BUNDLE-A -->
-              <app-bundle-components [dialogData]="dialogData" [hidden]="!isBundle()"/>
+              <app-bundle-components
+                [components]="articleForm.components"
+                [dialogData]="dialogData"
+                [hidden]="!articleForm.isBundle().value()"
+              />
             } @else {
               Minumum 1 artikal je potreban sa svojim zalihama.
             }
             <!-- NOVI ULAZ ROBE -->
-            <app-initial-stocks [hidden]="isBundle()"/>
+            <app-initial-stocks
+              [stocks]="articleForm.initialStocks"
+              [hidden]="articleForm.isBundle().value()"
+            />
           </div>
         </div>
       </mat-dialog-content>
@@ -147,7 +146,7 @@
           mat-flat-button
           color="primary"
           type="submit"
-          [disabled]="newArticleForm.pending || newArticleForm.invalid || articleStore.loadingStatus().saving"
+          [disabled]="articleForm().pending() || articleForm().invalid() || articleStore.loadingStatus().saving"
         >
           <div class="loading-button-status">
             @if (articleStore.loadingStatus().saving) {

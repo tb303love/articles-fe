@@ -1,6 +1,7 @@
-import {Component, inject, ChangeDetectionStrategy} from '@angular/core';
-import {FormArray, FormGroupDirective, ReactiveFormsModule} from '@angular/forms';
-import {createStockGroup} from '../add-article-form-logic';
+import {Component, input, ChangeDetectionStrategy} from '@angular/core';
+import {FieldTree, FormField} from '@angular/forms/signals';
+import {createStock} from '../add-article-form-logic';
+import {StockFormModel} from '../../../../core/model/article-form.model';
 import {MatInputModule} from '@angular/material/input';
 import {MatIconModule} from '@angular/material/icon';
 import {MatDatepickerModule} from '@angular/material/datepicker';
@@ -13,7 +14,7 @@ import {CommonModule} from '@angular/common';
   selector: 'app-initial-stocks',
   imports: [
     CommonModule,
-    ReactiveFormsModule,
+    FormField,
     MatIconModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -27,21 +28,13 @@ import {CommonModule} from '@angular/common';
   styleUrl: './initial-stocks.scss',
 })
 export class InitialStocks {
-  private rootFormGroup = inject(FormGroupDirective);
-
-  get parentForm() {
-    return this.rootFormGroup.form;
-  }
-
-  get stocks() {
-    return this.parentForm.get('initialStocks') as FormArray;
-  }
+  readonly stocks = input.required<FieldTree<StockFormModel[]>>();
 
   addStock() {
-    this.stocks.push(createStockGroup());
+    this.stocks()().value.update((stocks) => [...stocks, createStock()]);
   }
 
   removeStock(index: number) {
-    this.stocks.removeAt(index);
+    this.stocks()().value.update((stocks) => stocks.filter((_, i) => i !== index));
   }
 }

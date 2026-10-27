@@ -1,18 +1,20 @@
-<div class="bundle-components-section mt-3" [formGroup]="parentForm">
+<div class="bundle-components-section mt-3">
   <div class="header">
     <h4><mat-icon>layers</mat-icon> Sastav paketa</h4>
-    <button mat-icon-button color="primary" type="button" (click)="addComponent()" [disabled]="components.invalid">
+    <button mat-icon-button color="primary" type="button" (click)="addComponent()" [disabled]="components()().invalid()">
       <mat-icon>add</mat-icon>
     </button>
   </div>
-  @if (components.length > 0) {
-    <div formArrayName="components" class="components-list mt-2">
-      @for (cmp of components.controls; track $index) {
-        <div [formGroupName]="$index" class="component-row">
+  @if (components().length > 0) {
+    <div class="components-list mt-2">
+      @for (cmp of components(); track $index) {
+        <div class="component-row">
           <mat-form-field appearance="outline" class="flex-grow">
-            <input matInput formControlName="name" [matAutocomplete]="autoComp" placeholder="Izaberi artikal"/>
+            <input matInput [formField]="cmp.name" [matAutocomplete]="autoComp" placeholder="Izaberi artikal"
+                   (focus)="searchComponents($index, cmp.name().value())"
+                   (input)="searchComponents($index, $any($event.target).value)"/>
             <mat-autocomplete #autoComp="matAutocomplete" (optionSelected)="onSelected($event, $index)">
-              @for (art of filteredArticlesPerIndex()[$index]; track art.id) {
+              @for (art of suggestions()[$index] ?? []; track art.id) {
                 <mat-option [value]="art.name">
                   <span>{{ art.name }}</span> Komada: <span>{{ art.totalStock }}</span>
                 </mat-option>
@@ -20,8 +22,8 @@
             </mat-autocomplete>
           </mat-form-field>
           <mat-form-field appearance="outline" class="small-field">
-            <input matInput type="number" formControlName="quantity"/>
-            @if (cmp.hasError('max')) {
+            <input matInput type="number" [formField]="cmp.quantity"/>
+            @if (cmp.quantity().getError('max')) {
               <mat-error>Maksimum je predjen</mat-error>
             }
           </mat-form-field>

@@ -1,11 +1,13 @@
 <div [class.admin-theme]="true" class="theme-wrapper">
+  <!-- Progress bar ne skriva listu - polje za pretragu ostaje aktivno dok server odgovara -->
   @if(articlesStore.loadingStatus().list) {
   <mat-progress-bar mode="indeterminate" />
-  } @else { @if(articlesStore.count() > 0) {
+  }
+  @if(articlesStore.hasArticles()) {
   <!-- 1. ZAGLAVLJE AKCIJE (Pretraga, Dugmići) -->
   <div class="table-header-actions">
     <div class="header-title">
-      <h2>Lista artikala <span class="count-badge">{{articlesStore.count()}}</span></h2>
+      <h2>Lista artikala <span class="count-badge">{{articlesStore.totalCount()}}</span></h2>
     </div>
 
     <div class="header-controls">
@@ -13,11 +15,11 @@
         <mat-label>Pretraži artikle...</mat-label>
         <input
           matInput
-          [value]="articlesStore.filterQuery()"
+          [value]="articlesStore.searchTerm()"
           (input)="onSearch($event)"
-          placeholder="Npr. Coca Cola..."
+          placeholder="Ime ili barkod..."
         />
-        @if (articlesStore.filterQuery()) {
+        @if (articlesStore.searchTerm()) {
         <button mat-icon-button matSuffix (click)="clearSearch()" type="button">
           <mat-icon>close</mat-icon>
         </button>
@@ -63,7 +65,7 @@
     <!-- VIEWPORT (Telo tabele) -->
     <cdk-virtual-scroll-viewport [itemSize]="76" class="article-viewport">
       <div
-        *cdkVirtualFor="let row of articlesStore.filteredArticles(); trackBy: trackByFn"
+        *cdkVirtualFor="let row of articlesStore.articles(); trackBy: trackByFn"
         class="grid-row clickable"
         [class.show-addmission-prices]="showAdmissionPrices()"
         [appHoverOverlay]="custom"
@@ -119,22 +121,10 @@
     </cdk-virtual-scroll-viewport>
   </div>
 
-  } @else {
-  <!-- EMPTY STATE -->
-  <div class="centered-empty-state">
-    <div class="stack-buttons">
-      <mat-icon class="empty-illustration">inventory_2</mat-icon>
-      <h1 class="empty-title">Vaš ineventar je prazan</h1>
-      <button mat-raised-button color="accent" class="huge-btn" routerLink="new" type="button">
-        <mat-icon>add</mat-icon> DODAJ PRVI ARTIKAL
-      </button>
-      <div class="separator"><span>ili</span></div>
-      <button mat-stroked-button color="primary" class="huge-btn" (click)="openFileExplorer()" type="button">
-        <mat-icon>file_upload</mat-icon> UVEZI IZ EXCEL-A
-      </button>
-    </div>
-  </div>
-  } }
+  } @else if (articlesStore.totalCount() === 0) {
+  <!-- EMPTY STATE (prikazuje se tek kad server potvrdi da nema artikala) -->
+  <app-empty-inventory (addArticle)="openNewArticle()" (importExcel)="openFileExplorer()" />
+  }
 
   <!-- TEMPLATE ZA HOVER SLIKU -->
   <ng-template #custom let-row>

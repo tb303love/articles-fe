@@ -1,32 +1,29 @@
-import { FormArray, FormControl, FormGroup } from '@angular/forms';
-
-// Tip za jednu stavku zaliha (Stock Batch)
-export type StockFormGroup = FormGroup<{
-  quantity: FormControl<number>;
-  expirationDate: FormControl<string | null>;
-  batchNumber: FormControl<string | null>;
-}>;
-
-// Tip za jednu komponentu Bundle-a
-export type ComponentFormGroup = FormGroup<{
-  componentId: FormControl<number | null>;
-  quantity: FormControl<number | null>;
-  name: FormControl<string | null>;
-}>;
-
-// Glavna struktura kontrola u formi
-export interface AddArticleFormControls {
-  name: FormControl<string>;
-  barcodes: FormArray<FormControl<string>>;
-  price: FormControl<number>;
-  active: FormControl<boolean>;
-  admissionPrice1: FormControl<number>;
-  admissionPrice2: FormControl<number>;
-  initialStocks: FormArray<StockFormGroup>;
-  image: FormControl<File | null>;
-  category: FormControl<string | null>;
-  components: FormArray<ComponentFormGroup>;
+// Model jedne serije zaliha (Stock Batch)
+export interface StockFormModel {
+  quantity: number;
+  expirationDate: Date | string | null;
+  batchNumber: string;
 }
 
-// Finalni tip forme koji koristiš u komponenti
-export type ArticleFormGroup = FormGroup<AddArticleFormControls>;
+// Model jedne komponente Bundle-a
+export interface ComponentFormModel {
+  componentId: number | null;
+  quantity: number;
+  name: string;
+  availableStock: number | null; // Sveža zaliha sa servera (pri izboru ili otvaranju forme), za max validaciju
+}
+
+// Model cele forme artikla (signal forms)
+export interface ArticleFormModel {
+  name: string;
+  barcodes: string[];
+  price: number;
+  active: boolean;
+  admissionPrice1: number;
+  admissionPrice2: number;
+  category: string;
+  isBundle: boolean;
+  initialStocks: StockFormModel[];
+  components: ComponentFormModel[];
+  image: File | null;
+}

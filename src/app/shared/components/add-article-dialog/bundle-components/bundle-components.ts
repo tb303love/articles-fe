@@ -1,13 +1,20 @@
-import {Component, computed, inject, input, OnInit, ChangeDetectionStrategy} from '@angular/core';
+import {Component, inject, input, ChangeDetectionStrategy, signal} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {MatError, MatFormField, MatInput} from '@angular/material/input';
 import {MatIcon} from '@angular/material/icon';
-import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from '@angular/material/autocomplete';
-import {FormArray, FormGroupDirective, ReactiveFormsModule, Validators} from '@angular/forms';
-import {createComponentGroup} from '../add-article-form-logic';
-import {ArticleStore} from '../../../../store';
-import {SalesArticle} from '../../../../core/model';
+import {
+  MatAutocomplete,
+  MatAutocompleteSelectedEvent,
+  MatAutocompleteTrigger,
+  MatOption
+} from '@angular/material/autocomplete';
+import {FieldTree, FormField} from '@angular/forms/signals';
+import {catchError, debounceTime, map, of, Subject, switchMap} from 'rxjs';
+import {createComponent} from '../add-article-form-logic';
+import {ArticleResponse, SalesArticle} from '../../../../core/model';
+import {ComponentFormModel} from '../../../../core/model/article-form.model';
+import {ArticlesApiService} from '../../../../core/services/articles-api-service';
 import {MatIconButton} from '@angular/material/button';
-import {toSignal} from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-bundle-components',
@@ -16,7 +23,7 @@ import {toSignal} from '@angular/core/rxjs-interop';
     MatIcon,
     MatAutocomplete,
     MatOption,
-    ReactiveFormsModule,
+    FormField,
     MatAutocompleteTrigger,
     MatInput,
     MatIconButton,
@@ -26,73 +33,58 @@ import {toSignal} from '@angular/core/rxjs-interop';
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './bundle-components.scss',
 })
-export class BundleComponents implements OnInit {
-  private readonly rootFormGroup = inject(FormGroupDirective);
-  private readonly articleStore = inject(ArticleStore);
+export class BundleComponents {
+  private readonly articleApi = inject(ArticlesApiService);
+  readonly components = input.required<FieldTree<ComponentFormModel[]>>();
   dialogData = input<SalesArticle | null>();
-  private readonly componentsValue = toSignal(this.components.valueChanges, {initialValue: this.components.value});
 
-  // Prosledi funkcije za filtriranje kao Inpute ako zavise od glavnog Store-a
-  protected readonly filteredArticlesPerIndex = computed(() => {
-    const currentArticles = this.articleStore.articles();
-    const formValues = this.componentsValue();
-    const editingId = this.dialogData()?.id;
+  // Predlozi po indeksu reda - uvek rezultat poslednje pretrage na serveru, ne kopija iz store-a
+  protected readonly suggestions = signal<Record<number, ArticleResponse[]>>({});
+  private readonly search$ = new Subject<{index: number; query: string}>();
 
-    // Vraćamo mapu gde je ključ indeks reda, a vrednost filtrirani artikli
-    return formValues.map((val: any) => {
-      const search = (val.name || '').toLowerCase();
-
-      return currentArticles.filter(art =>
-        art.name.toLowerCase().includes(search) &&
-        art.id !== editingId &&
-        art.totalStock > 0 &&
-        (!art.composition || art.composition.length === 0)
-      );
-    });
-  });
-
-  get parentForm() {
-    return this.rootFormGroup.form;
+  constructor() {
+    this.search$
+      .pipe(
+        debounceTime(300),
+        // switchMap otkazuje prethodni zahtev - stariji odgovor nikad ne pregazi noviji
+        switchMap(({index, query}) =>
+          this.articleApi.getArticles(query).pipe(
+            map((articles) => ({index, articles: articles.filter((art) => this.isValidComponent(art))})),
+            catchError(() => of({index, articles: [] as ArticleResponse[]})),
+          ),
+        ),
+        takeUntilDestroyed(),
+      )
+      .subscribe(({index, articles}) => this.suggestions.update((s) => ({...s, [index]: articles})));
   }
 
-  get components() {
-    return this.parentForm.get('components') as FormArray;
-  }
-
-  ngOnInit() {
-    const group = this.components;
-    group.get('componentId')?.valueChanges.subscribe((selectedId) => {
-      // Ovde koristimo novi totalStock ili stocks sumu iz store-a ako postoji
-      const selectedArt = this.articleStore.articles().find((a: any) => a.id === selectedId);
-      const stock = selectedArt?.totalStock || 0;
-
-      group
-        .get('quantity')
-        ?.setValidators([Validators.required, Validators.min(1), Validators.max(stock)]);
-      group.get('quantity')?.updateValueAndValidity();
-    });
+  protected searchComponents(index: number, query: string) {
+    this.search$.next({index, query});
   }
 
   addComponent() {
-    this.components.push(createComponentGroup());
+    this.components()().value.update((components) => [...components, createComponent()]);
   }
 
   removeComponent(index: number) {
-    this.components.removeAt(index);
+    this.components()().value.update((components) => components.filter((_, i) => i !== index));
+    // Indeksi redova su se pomerili - predlozi se ponovo traže pri sledećem fokusu/kucanju
+    this.suggestions.set({});
   }
 
-  protected onSelected(event: any, index: number) {
+  protected onSelected(event: MatAutocompleteSelectedEvent, index: number) {
     const selectedName = event.option.value;
-    const article = this.articleStore.articles().find((a) => a.name === selectedName);
+    const article = (this.suggestions()[index] ?? []).find((a) => a.name === selectedName);
 
     if (article) {
-      const group = this.components.at(index);
-      // Upisujemo ID koji je ključan za slanje na backend
-      group.get('componentId')?.setValue(article.id);
-
-      // Opciono: Ažuriramo validaciju da količina ne može biti veća od dostupne u magacinu
-      group.get('quantity')?.setValidators([Validators.required, Validators.min(1), Validators.max(article.totalStock)]);
-      // group.get('quantity')?.updateValueAndValidity();
+      // ID je ključan za slanje na backend, a zaliha (sveža sa servera) služi za max validaciju količine
+      this.components()[index].componentId().value.set(article.id);
+      this.components()[index].availableStock().value.set(article.totalStock);
     }
+  }
+
+  // Komponenta paketa: običan artikal (ne paket), sa zalihom, i nije artikal koji se trenutno menja
+  private isValidComponent(art: ArticleResponse): boolean {
+    return art.id !== this.dialogData()?.id && art.totalStock > 0 && !art.composition?.length;
   }
 }

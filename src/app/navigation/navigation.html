@@ -10,7 +10,7 @@
   @if (auth.isAuthenticated()) {
     <div class="nav-links">
       <!-- Linkovi za Admina -->
-      @if (auth.isAdmin() && articleStore.count() > 0) {
+      @if (auth.isAdmin() && articleStore.hasArticles()) {
         <a mat-button routerLink="/artikli" routerLinkActive="active-link" class="nav-item">
           <mat-icon>inventory_2</mat-icon> 
           <span>Artikli</span>

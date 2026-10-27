@@ -23,9 +23,10 @@ export const createExcelImportHandler = (injector: Injector): FileActionHandler 
     icon: 'table_chart',
     color: 'green',
     run: (file: File): Observable<boolean> => {
-      const existingNames = store.articles().map((a: any) => a.name);
-
-      return api.analyzeExcel(file, existingNames).pipe(
+      // Provera duplikata ide nad SVIM artiklima sa servera u trenutku uvoza, ne nad (filtriranom) listom iz store-a
+      return api.getArticles().pipe(
+        map((articles) => articles.map((a) => a.name)),
+        switchMap((existingNames) => api.analyzeExcel(file, existingNames)),
         switchMap((result) => {
           const confirmRef = dialog.open(ImportConfirmDialog, {
             data: { stats: result.stats, fileName: file.name },
@@ -35,7 +36,7 @@ export const createExcelImportHandler = (injector: Injector): FileActionHandler 
         switchMap((confirmed) => {
           if (confirmed) {
             return api.executeBulkImport(file).pipe(
-              tap(() => store.loadAll('')),
+              tap(() => store.reload()),
               map(() => true),
             );
           }

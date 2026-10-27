@@ -32,16 +32,18 @@ export class AuthService {
 
     userRoles: Signal<string[]> = computed(() => {
         const token = this.accessTokenSignal();
+
         if (!token) return [];
         try {
             const payload = JSON.parse(atob(token.split('.')[1])); // Dekodovanje JWT payload-a
-            return payload.roles || [];
+           console.log(payload)
+           return payload.username ? [payload.username]: [];
         } catch {
             return [];
         }
     });
 
-    isAdmin = computed(() => this.userRoles().includes('ROLE_ADMIN'));
+    isAdmin = computed(() => this.userRoles().includes('admin'));
 
     // 3. LOGIN - Pokreće promenu signala
     login(credentials: any): Observable<AuthResponse> {

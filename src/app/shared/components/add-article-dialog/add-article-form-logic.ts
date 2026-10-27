@@ -1,165 +1,177 @@
-import {Injector} from '@angular/core';
-import {AsyncValidatorFn, FormArray, FormControl, FormGroup, Validators} from '@angular/forms';
+import {Signal} from '@angular/core';
+import {rxResource} from '@angular/core/rxjs-interop';
+import {
+  applyEach,
+  applyWhen,
+  max,
+  min,
+  required,
+  schema,
+  validate,
+  validateAsync,
+} from '@angular/forms/signals';
 import {SalesArticleWithExtra} from '../../../core/model';
 import {
-  AddArticleFormControls,
-  ArticleFormGroup,
-  ComponentFormGroup,
-  StockFormGroup,
+  ArticleFormModel,
+  ComponentFormModel,
+  StockFormModel,
 } from '../../../core/model/article-form.model';
-import {ArticleStore} from '../../../store';
-import {
-  articleNoChangesValidator,
-  checkArticleName,
-  eanValidator,
-  uniqueValueValidator,
-  validateImage
-} from '../../form-validators';
+import {ArticlesApiService} from '../../../core/services/articles-api-service';
+import {eanError, hasArticleChanges, hasDuplicateValues, isImageTooLarge} from '../../form-validators';
 import {ObjectUtils} from '../../../core/utils/util';
+import {isStockAvailable} from './add-edit-article-util';
 
 /**
- * Kreira grupu za jednu seriju zaliha (Stock Batch)
+ * Kreira jednu seriju zaliha (Stock Batch)
  */
-export function createStockGroup(
+export function createStock(
   qty: number = 1,
-  expiration: string | null = null,
+  expiration: Date | string | null = null,
   batch: string = '',
-): StockFormGroup {
-  return new FormGroup({
-    quantity: new FormControl(qty, {
-      nonNullable: true,
-      validators: [Validators.required, Validators.min(1)],
-    }),
-    expirationDate: new FormControl(expiration, {
-      validators: [Validators.required],
-    }),
-    batchNumber: new FormControl(batch),
-  });
+): StockFormModel {
+  return {quantity: qty, expirationDate: expiration, batchNumber: batch};
 }
 
 /**
- * Kreira grupu za jednu komponentu paketa (Bundle)
+ * Kreira jednu komponentu paketa (Bundle)
  */
-export function createComponentGroup(
+export function createComponent(
   id: number | null = null,
   qty: number = 1,
   name: string = '',
-) {
-  return new FormGroup({
-    componentId: new FormControl(id, {validators: [Validators.required]}),
-    quantity: new FormControl(qty, {validators: [Validators.required, Validators.min(1)]}),
-    name: new FormControl(name),
-  });
+  availableStock: number | null = null,
+): ComponentFormModel {
+  return {componentId: id, quantity: qty, name, availableStock};
 }
 
-function handleBarcodes(article: SalesArticleWithExtra, formGroup: FormGroup<AddArticleFormControls>) {
-  if (article && article.barcodes) {
-    article.barcodes.forEach(code => {
-      formGroup.controls.barcodes.push(new FormControl(code, {nonNullable: true}));
-    });
-  }
-}
-
-function handleBundle(article: SalesArticleWithExtra, formGroup: FormGroup<AddArticleFormControls>) {
-  if (article.composition && article.composition.length > 0) {
-    article.composition.forEach((comp) => {
-      formGroup.controls.components.push(
-        createComponentGroup(comp.articleId, comp.quantity, comp.name)
-      );
-    });
-  }
-}
-
-function handleStocks(article: SalesArticleWithExtra, formGroup: FormGroup<AddArticleFormControls>) {
-  if (article.stocks && article.stocks.length > 0) {
-    article.stocks.forEach((stock) => {
-      formGroup.controls.initialStocks.push(
-        createStockGroup(stock.quantity, stock.expirationDate, stock.batchNumber || '')
-      );
-    });
-  }
+export function emptyArticleModel(): ArticleFormModel {
+  return {
+    name: '',
+    barcodes: [],
+    price: 0,
+    admissionPrice1: 0,
+    admissionPrice2: 0,
+    active: true,
+    category: '',
+    isBundle: false,
+    initialStocks: [],
+    components: [],
+    image: null,
+  };
 }
 
 /**
- * Inicijalizuje celu formu pri otvaranju (Create ili Edit)
+ * Pravi početni model forme pri otvaranju (Create ili Edit)
  */
-export default function initializeForm(
+export function createArticleModel(
   article: SalesArticleWithExtra | null,
-  articleStore: InstanceType<typeof ArticleStore>,
-  injector: Injector,
   image: File | null,
-): ArticleFormGroup {
-  const nameAsyncValidators = article
-    ? [checkArticleName(articleStore, injector, article.id)]
-    : [checkArticleName(articleStore, injector)];
+): ArticleFormModel {
+  const model = emptyArticleModel();
 
-  const formGroup = createFormGroup(nameAsyncValidators);
-  console.log(article)
-  // Ako kreiramo NOVI artikal
-  if (!article || !article.id || ObjectUtils.isEmptyObject(article)) {
-    console.log('OVDE SAM!');
-    return formGroup;
+  // Ako menjamo POSTOJEĆI artikal
+  if (article?.id && !ObjectUtils.isEmptyObject(article)) {
+    const composition = article.composition ?? [];
+    Object.assign(model, {
+      name: article.name,
+      price: article.price,
+      active: article.active,
+      admissionPrice1: article.admissionPrice1,
+      admissionPrice2: article.admissionPrice2,
+      category: article.category ?? '',
+      image,
+      barcodes: [...(article.barcodes ?? [])],
+      isBundle: composition.length > 0,
+      components: composition.map(c => createComponent(c.articleId, c.quantity, c.name, c.availableStock)),
+      initialStocks: (article.stocks ?? []).map(s =>
+        createStock(s.quantity, s.expirationDate, s.batchNumber || ''),
+      ),
+    } satisfies Partial<ArticleFormModel>);
   }
 
-  // 2. Popunjavanje Bundle komponenti (ako je paket)
-  handleBundle(article, formGroup);
-  handleStocks(article, formGroup);
-  handleBarcodes(article, formGroup);
+  // Skenirana zaliha (sa barkod čitača) ide kao nova serija
+  const scanned = isStockAvailable(article);
+  if (scanned) {
+    model.initialStocks = [...model.initialStocks, createStock(scanned.quantity, scanned.expiryDate)];
+  }
 
-  // 3. Postavljanje osnovnih vrednosti (name, price, category...)
-  formGroup.patchValue({
-    name: article.name,
-    price: article.price,
-    active: article.active,
-    admissionPrice1: article.admissionPrice1,
-    admissionPrice2: article.admissionPrice2,
-    category: article.category,
-    image,
-  });
+  return model;
+}
 
-  // Validator za detekciju promena (da li je bilo šta pipnuto)
-  formGroup.addValidators(articleNoChangesValidator(article, image));
-
-  return formGroup;
+interface ArticleSchemaDeps {
+  article: SalesArticleWithExtra | null;
+  articleApi: ArticlesApiService;
+  initialImage: Signal<File | null>;
 }
 
 /**
- * Definiše osnovnu strukturu forme
+ * Definiše validaciju i logiku forme
  */
-function createFormGroup(nameAsyncValidators: AsyncValidatorFn[]): ArticleFormGroup {
-  return new FormGroup<AddArticleFormControls>({
-    name: new FormControl('', {
-      nonNullable: true,
-      validators: [Validators.required],
-      asyncValidators: nameAsyncValidators,
-    }),
-    barcodes: new FormArray<FormControl<string>>([], {validators: [uniqueValueValidator()]}),
-    price: new FormControl(0, {
-      nonNullable: true,
-      validators: [Validators.required, Validators.min(0)],
-    }),
-    admissionPrice1: new FormControl(0, {
-      nonNullable: true,
-      validators: [Validators.required, Validators.min(0)],
-    }),
-    admissionPrice2: new FormControl(0, {
-      nonNullable: true,
-      validators: [Validators.required, Validators.min(0)],
-    }),
-    active: new FormControl(true, {nonNullable: true}),
-    // NOVO: FormArray za praćenje više serija i rokova
-    initialStocks: new FormArray<StockFormGroup>([]),
-    category: new FormControl(null),
-    image: new FormControl<File | null>(null, {
-      validators: [validateImage],
-      nonNullable: false,
-    }),
-    components: new FormArray<ComponentFormGroup>([]),
-  });
-}
+export function articleFormSchema({article, articleApi, initialImage}: ArticleSchemaDeps) {
+  const editingId = article?.id;
 
-export function newBarCodeField(): FormControl<string>;
-export function newBarCodeField(barcode: string): FormControl<string>;
-export function newBarCodeField(barcode?: string) {
-  return new FormControl<string>(barcode ? barcode : '', {validators: [Validators.required, eanValidator]});
+  return schema<ArticleFormModel>((p) => {
+    required(p.name, {message: 'Ime je obavezno'});
+    validateAsync(p.name, {
+      // Proveravamo samo ako je korisnik menjao ime
+      when: ({state}) => state.dirty(),
+      params: ({value}) => value(),
+      debounce: 500,
+      factory: (name) =>
+        rxResource({
+          params: name,
+          stream: ({params}) =>
+            editingId
+              ? articleApi.checkArticleNameButExcludeCurrent(params, editingId)
+              : articleApi.checkArticleName(params),
+        }),
+      onSuccess: (available) => (available ? null : {kind: 'nameTaken', message: 'Ime je zauzeto'}),
+      onError: () => null,
+    });
+
+    for (const price of [p.price, p.admissionPrice1, p.admissionPrice2]) {
+      required(price);
+      min(price, 0);
+    }
+
+    validate(p.barcodes, ({value}) =>
+      hasDuplicateValues(value()) ? {kind: 'duplicateValue'} : null,
+    );
+    applyEach(p.barcodes, (barcode) => {
+      required(barcode);
+      validate(barcode, ({value}) => {
+        const kind = eanError(value());
+        return kind ? {kind} : null;
+      });
+    });
+
+    validate(p.image, ({value}) => (isImageTooLarge(value()) ? {kind: 'maxFileSize'} : null));
+
+    // Zalihe se validiraju samo za običan artikal
+    applyWhen(p.initialStocks, ({valueOf}) => !valueOf(p.isBundle), (stocks) => {
+      applyEach(stocks, (stock) => {
+        required(stock.quantity);
+        min(stock.quantity, 1);
+        required(stock.expirationDate);
+      });
+    });
+
+    // Komponente se validiraju samo za bundle
+    applyWhen(p.components, ({valueOf}) => valueOf(p.isBundle), (components) => {
+      applyEach(components, (component) => {
+        required(component.componentId);
+        required(component.quantity);
+        min(component.quantity, 1);
+        // Količina ne može biti veća od dostupne u magacinu (zaliha stiže sa servera uz izabranu komponentu)
+        max(component.quantity, ({valueOf}) => valueOf(component.availableStock) ?? undefined);
+      });
+    });
+
+    // Detekcija promena (edit mod) - da li je bilo šta pipnuto
+    if (editingId) {
+      validate(p, ({value}) =>
+        hasArticleChanges(article, value(), initialImage()) ? null : {kind: 'noChanges'},
+      );
+    }
+  });
 }

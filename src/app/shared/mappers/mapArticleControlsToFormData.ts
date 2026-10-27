@@ -1,6 +1,6 @@
-import { AddArticleFormControls } from "../../core/model/article-form.model";
+import { ArticleFormModel } from "../../core/model/article-form.model";
 
-export function mapFormControlsToFormData(controls: AddArticleFormControls): FormData {
+export function mapArticleModelToFormData(value: ArticleFormModel): FormData {
   const formData = new FormData();
 
   const toLocalYMD = (date: any) => {
@@ -27,29 +27,25 @@ export function mapFormControlsToFormData(controls: AddArticleFormControls): For
     return `${year}-${month}-${day}`;
   };
 
-
-  // 1. Proveravamo status kontrola da odredimo tip artikla
-  const isBundle = controls.components.enabled;
-  const isRegular = controls.initialStocks.enabled;
+  // Tip artikla određuje šta se šalje: bundle -> komponente, običan -> zalihe
+  const isBundle = value.isBundle;
 
   const articleRequest = {
-    name: controls.name.value,
-    price: controls.price.value,
-    barcodes: controls.barcodes.value,
-    active: controls.active.value,
-    admissionPrice1: controls.admissionPrice1.value,
-    admissionPrice2: controls.admissionPrice2.value,
-    categoryName: controls.category.value,
+    name: value.name,
+    price: value.price,
+    barcodes: value.barcodes,
+    active: value.active,
+    admissionPrice1: value.admissionPrice1,
+    admissionPrice2: value.admissionPrice2,
+    categoryName: value.category || null,
 
-    // Ako su zalihe disabled, šaljemo null bez obzira na to šta piše u njima
-    initialStocks: isRegular ? controls.initialStocks.value.map(s => ({
+    initialStocks: isBundle ? null : value.initialStocks.map(s => ({
       quantity: s.quantity,
       expirationDate: toLocalYMD(s.expirationDate),
       batchNumber: s.batchNumber
-    })) : null,
+    })),
 
-    // Ako su komponente disabled, šaljemo null
-    components: isBundle ? controls.components.value.map(c => ({
+    components: isBundle ? value.components.map(c => ({
       componentId: c.componentId,
       quantity: c.quantity
     })) : null
@@ -62,11 +58,10 @@ export function mapFormControlsToFormData(controls: AddArticleFormControls): For
 
   formData.append('article', articleBlob);
 
-  const imageFile = controls.image.value;
+  const imageFile = value.image;
   if (imageFile instanceof File) {
     formData.append('image', imageFile, imageFile.name);
   }
 
   return formData;
 }
-

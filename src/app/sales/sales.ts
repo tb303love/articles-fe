@@ -35,7 +35,7 @@ import {LongPressDirective} from '../shared/directives';
 import {ImageDomSanitizerPipe} from '../shared/pipes';
 import {ArticleStore, OrderStore} from '../store';
 import {ActivatedRoute} from '@angular/router';
-import {filter, map} from 'rxjs';
+import {catchError, concatMap, EMPTY, filter, map} from 'rxjs';
 
 @Component({
    selector: 'app-sales',
@@ -84,15 +84,17 @@ export class Sales implements OnInit, OnDestroy {
       this.route.queryParamMap.pipe(
          map(params => params.get('barcode')), // Izvuci samo vrednost bar-koda
          filter((barcode): barcode is string => !!barcode),
+         // Sveže stanje (cena, zaliha) sa servera u trenutku skeniranja, nezavisno od trenutne pretrage
+         concatMap((barcode) =>
+            this.articlesStore.findByBarcode(barcode).pipe(
+               catchError(() => {
+                  console.warn('Artikal sa barkodom nije pronađen:', barcode);
+                  return EMPTY;
+               }),
+            ),
+         ),
          takeUntilDestroyed()
-      ).subscribe(barcode => {
-         const article = this.articlesStore.getArticleByBarcode(barcode);
-         console.log(article(), barcode);
-         const art = article();
-         if (art) {
-            this.salesService.addToCart(art);
-         }
-      });
+      ).subscribe(article => this.salesService.addToCart(article));
    }
 
    ngOnInit(): void {
@@ -146,7 +148,7 @@ export class Sales implements OnInit, OnDestroy {
 
       // ESC -> Čišćenje pretrage
       if (event.key === 'Escape') {
-         if (this.articlesStore.filterQuery()) {
+         if (this.articlesStore.searchTerm()) {
             event.preventDefault();
             this.clearSearch();
          }
@@ -205,15 +207,15 @@ export class Sales implements OnInit, OnDestroy {
 
    onSearch(event: Event) {
       const value = (event.target as HTMLInputElement).value;
-      this.articlesStore.updateFilter(value);
+      this.articlesStore.search(value);
    }
 
    clearSearch() {
-      this.articlesStore.updateFilter('');
+      this.articlesStore.resetSearch(); // Prazna pretraga + sveža lista sa servera
    }
 
    private loadInitialData() {
-      this.articlesStore.loadAll('');
+      // Lista artikala se učitava kroz clearSearch() u ngOnInit
       this.orderStore.getTodayOrders();
       this.orderStore.getTodayRevenue();
    }

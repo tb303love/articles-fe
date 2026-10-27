@@ -55,11 +55,11 @@
         <mat-label>Pretraži artikle...</mat-label>
         <input
           matInput
-          [value]="articlesStore.filterQuery()"
+          [value]="articlesStore.searchTerm()"
           (input)="onSearch($event)"
         />
         <mat-icon matPrefix>search</mat-icon>
-        @if (articlesStore.filterQuery()) {
+        @if (articlesStore.searchTerm()) {
           <button matSuffix mat-icon-button (click)="clearSearch()">
             <mat-icon>close</mat-icon>
           </button>
@@ -75,7 +75,7 @@
     </div>
 
     <div class="grid-container" [class.drawer-open]="drawer.opened">
-      @for (article of articlesStore.filteredArticles(); track article.id) {
+      @for (article of articlesStore.articles(); track article.id) {
         @let isOutOfStock =
           article.totalStock === 0;
         <mat-card

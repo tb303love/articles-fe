@@ -1,5 +1,5 @@
 import {Routes} from '@angular/router';
-import {adminGuard, authGuard} from './core/guards';
+import {adminGuard, authGuard, countItemsGuard} from './core/guards';
 import {Login} from './login/login';
 import {NotFound} from './not-found/not-found';
 
@@ -20,7 +20,7 @@ const appRoutes: Routes = [
    // PRODAJA: Zaštićena samo loginom (Lazy Loaded)
    {
       path: 'prodaja',
-      canActivate: [authGuard], // SVI ULOGOVANI
+      canActivate: [authGuard, countItemsGuard], // SVI ULOGOVANI
       loadChildren: () => import('./sales/sales.routes'),
    },
 

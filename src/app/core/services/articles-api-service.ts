@@ -8,145 +8,157 @@ import {ImportErrorsDialog} from '../../shared/components/import-errors-dialog/i
 import {ArticleResponse} from '../model';
 
 @Injectable({
-  providedIn: 'root',
+   providedIn: 'root',
 })
 export class ArticlesApiService {
-  private readonly httpClient = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiUrl}/articles`;
-  private readonly dialog = inject(MatDialog);
-  private readonly snackBar = inject(MatSnackBar);
+   private readonly httpClient = inject(HttpClient);
+   private readonly baseUrl = `${environment.apiUrl}/articles`;
+   private readonly dialog = inject(MatDialog);
+   private readonly snackBar = inject(MatSnackBar);
 
-  analyzeExcel(file: File, existingNames: string[]): Observable<any> {
-    return from(file.arrayBuffer()).pipe(
-      switchMap((buffer) => this.runWorker(buffer, existingNames)),
-    );
-  }
+   analyzeExcel(file: File, existingNames: string[]): Observable<any> {
+      return from(file.arrayBuffer()).pipe(
+         switchMap((buffer) => this.runWorker(buffer, existingNames)),
+      );
+   }
 
-  executeBulkImport(file: File): Observable<any> {
-    return from(file.arrayBuffer()).pipe(
-      switchMap((buffer) => this.runWorker(buffer)), // Ovde ne moramo slati existingNames ako ih ne koristimo za logiku uvoza
-      switchMap((result) => {
-        const validCount = result.articles?.length || 0;
-        const errorCount = result.errors?.length || 0;
+   executeBulkImport(file: File): Observable<any> {
+      return from(file.arrayBuffer()).pipe(
+         switchMap((buffer) => this.runWorker(buffer)), // Ovde ne moramo slati existingNames ako ih ne koristimo za logiku uvoza
+         switchMap((result) => {
+            const validCount = result.articles?.length || 0;
+            const errorCount = result.errors?.length || 0;
 
-        // Prikaži greške ako postoje
-        if (errorCount > 0) {
-          this.showImportReport(result.errors);
-        }
+            // Prikaži greške ako postoje
+            if (errorCount > 0) {
+               this.showImportReport(result.errors);
+            }
 
-        if (validCount > 0) {
-          const mappedArticles = result.articles;
+            if (validCount > 0) {
+               const mappedArticles = result.articles;
 
-          return this.httpClient.post(`${this.baseUrl}/bulk-import`, mappedArticles).pipe(
-            map((res) => {
-              this.handleImportFeedback(validCount, errorCount);
-              return res;
-            }),
-          );
-        } else {
-          this.snackBar.open('Nema validnih artikala za uvoz.', 'Zatvori', {
-            panelClass: ['snackbar-error'],
-          });
-          return from([null]);
-        }
-      }),
-    );
-  }
+               return this.httpClient.post(`${this.baseUrl}/bulk-import`, mappedArticles).pipe(
+                  map((res) => {
+                     this.handleImportFeedback(validCount, errorCount);
+                     return res;
+                  }),
+               );
+            } else {
+               this.snackBar.open('Nema validnih artikala za uvoz.', 'Zatvori', {
+                  panelClass: ['snackbar-error'],
+               });
+               return from([null]);
+            }
+         }),
+      );
+   }
 
-  getArticles(searchTerm?: string): Observable<ArticleResponse[]> {
-    let params = new HttpParams();
-    if (searchTerm) {
-      params = params.set('search', searchTerm);
-    }
-    return this.httpClient.get<ArticleResponse[]>(this.baseUrl, {params});
-  }
+   /** Pretraga na serveru - po imenu (deo imena) ili tačnom barkodu. Bez upita vraća sve artikle. */
+   getArticles(query?: string): Observable<ArticleResponse[]> {
+      let params = new HttpParams();
+      if (query?.trim()) {
+         params = params.set('query', query.trim());
+      }
+      return this.httpClient.get<ArticleResponse[]>(this.baseUrl, {params});
+   }
 
-  checkArticleName(articleName: string) {
-    return this.httpClient.get<boolean>(`${this.baseUrl}/check-article-name`, {
-      params: {articleName},
-    });
-  }
+   /** Ukupan broj artikala, nezavisno od pretrage */
+   countArticles(): Observable<number> {
+      return this.httpClient.get<number>(`${this.baseUrl}/count`);
+   }
 
-  checkArticleNameButExcludeCurrent(articleName: string, id: number) {
-    return this.httpClient.get<boolean>(`${this.baseUrl}/check-article-name-exclude-current`, {
-      params: {articleName, id},
-    });
-  }
+   /** Sveže stanje jednog artikla po barkodu (404 ako barkod ne postoji) */
+   findByBarcode(barcode: string): Observable<ArticleResponse> {
+      return this.httpClient.get<ArticleResponse>(`${this.baseUrl}/barcode/${encodeURIComponent(barcode)}`);
+   }
 
-  addNewArticle(request: FormData): Observable<any> {
-    return this.httpClient.post<any>(`${this.baseUrl}`, request, {
-      observe: 'events',
-      reportProgress: true,
-    });
-  }
+   checkArticleName(name: string) {
+      return this.httpClient.get<boolean>(`${this.baseUrl}/check-name`, {
+         params: {name},
+      });
+   }
 
-  deleteArticle(id: number): Observable<any> {
-    return of(null).pipe(exhaustMap(() => this.httpClient.delete(`${this.baseUrl}/${id}`)));
-  }
+   checkArticleNameButExcludeCurrent(name: string, id: number) {
+      return this.httpClient.get<boolean>(`${this.baseUrl}/check-name-exclude-current`, {
+         params: {name, id},
+      });
+   }
 
-  updateArticle(id: number, request: FormData): Observable<any> {
-    return this.httpClient.patch<any>(`${this.baseUrl}/${id}`, request, {
-      observe: 'events',
-      reportProgress: true,
-    });
-  }
+   addNewArticle(request: FormData): Observable<any> {
+      return this.httpClient.post<any>(`${this.baseUrl}`, request, {
+         observe: 'events',
+         reportProgress: true,
+      });
+   }
 
-  writeOffArticleStock(id: number): Observable<any> {
-    return this.httpClient.delete(`${this.baseUrl}/stock/${id}`);
-  }
+   deleteArticle(id: number): Observable<any> {
+      return of(null).pipe(exhaustMap(() => this.httpClient.delete(`${this.baseUrl}/${id}`)));
+   }
 
-  getAffectedBundles(id: number): Observable<string[]> {
-    return this.httpClient.get<string[]>(`${this.baseUrl}/stock/${id}/affected-bundles`);
-  }
+   updateArticle(id: number, request: FormData): Observable<any> {
+      return this.httpClient.patch<any>(`${this.baseUrl}/${id}`, request, {
+         observe: 'events',
+         reportProgress: true,
+         responseType: 'json'
+      });
+   }
 
-  /**
-   * POMOĆNA FUNKCIJA: Pokreće worker sa datim bufferom i podacima
-   */
-  private runWorker(buffer: ArrayBuffer, existingNames: string[] = []): Observable<any> {
-    return new Observable((observer) => {
-      const worker = new Worker(new URL('../../excel-parser.worker', import.meta.url));
+   writeOffArticleStock(id: number): Observable<any> {
+      return this.httpClient.delete(`${this.baseUrl}/stock/${id}`);
+   }
 
-      worker.onmessage = ({data}) => {
-        if (data.success) {
-          observer.next(data);
-          observer.complete();
-        } else {
-          observer.error(data.error);
-        }
-        worker.terminate();
-      };
+   getAffectedBundles(id: number): Observable<string[]> {
+      return this.httpClient.get<string[]>(`${this.baseUrl}/stock/${id}/affected-bundles`);
+   }
 
-      worker.onerror = (err) => {
-        observer.error('Kritična greška u Web Workeru.');
-        worker.terminate();
-      };
+   /**
+    * POMOĆNA FUNKCIJA: Pokreće worker sa datim bufferom i podacima
+    */
+   private runWorker(buffer: ArrayBuffer, existingNames: string[] = []): Observable<any> {
+      return new Observable((observer) => {
+         const worker = new Worker(new URL('../../excel-parser.worker', import.meta.url));
 
-      // Transferable objekat: buffer šaljemo bez kopiranja u memoriji
-      worker.postMessage({buffer, existingNames}, [buffer]);
-    });
-  }
+         worker.onmessage = ({data}) => {
+            if (data.success) {
+               observer.next(data);
+               observer.complete();
+            } else {
+               observer.error(data.error);
+            }
+            worker.terminate();
+         };
 
-  private handleImportFeedback(valid: number, skipped: number) {
-    let message = `Uspešan uvoz! Dodato: ${valid}`;
-    let panel = 'snackbar-success';
+         worker.onerror = (err) => {
+            observer.error('Kritična greška u Web Workeru.');
+            worker.terminate();
+         };
 
-    if (valid === 0) {
-      message = 'Nijedan artikal nije uvezen. Proverite greške.';
-      panel = 'snackbar-error';
-    } else if (skipped > 0) {
-      message = `Delimično uspešno: ${valid} uvezeno, ${skipped} preskočeno.`;
-      panel = 'snackbar-warning';
-    }
+         // Transferable objekat: buffer šaljemo bez kopiranja u memoriji
+         worker.postMessage({buffer, existingNames}, [buffer]);
+      });
+   }
 
-    this.snackBar.open(message, 'OK', {duration: 5000, panelClass: [panel]});
-  }
+   private handleImportFeedback(valid: number, skipped: number) {
+      let message = `Uspešan uvoz! Dodato: ${valid}`;
+      let panel = 'snackbar-success';
 
-  private showImportReport(errors: any[]): void {
-    this.dialog.open(ImportErrorsDialog, {
-      data: {errors},
-      width: '600px',
-      maxWidth: '95vw',
-      disableClose: true,
-    });
-  }
+      if (valid === 0) {
+         message = 'Nijedan artikal nije uvezen. Proverite greške.';
+         panel = 'snackbar-error';
+      } else if (skipped > 0) {
+         message = `Delimično uspešno: ${valid} uvezeno, ${skipped} preskočeno.`;
+         panel = 'snackbar-warning';
+      }
+
+      this.snackBar.open(message, 'OK', {duration: 5000, panelClass: [panel]});
+   }
+
+   private showImportReport(errors: any[]): void {
+      this.dialog.open(ImportErrorsDialog, {
+         data: {errors},
+         width: '600px',
+         maxWidth: '95vw',
+         disableClose: true,
+      });
+   }
 }

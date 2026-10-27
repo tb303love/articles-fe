@@ -1,72 +1,51 @@
-import {Injector} from '@angular/core';
-import {toObservable} from '@angular/core/rxjs-interop';
-import {AbstractControl, AsyncValidatorFn, FormArray, ValidationErrors, ValidatorFn} from '@angular/forms';
-import {filter, map, of, take} from 'rxjs';
 import {SalesArticle} from '../core/model';
-import {ArticleStore} from '../store';
+import {ArticleFormModel} from '../core/model/article-form.model';
 
-export function validateImage(control: AbstractControl<File>): ValidationErrors | null {
-  if (!control.value) {
-    return null;
-  }
-  return control.value.size > 16777216 ? {maxFileSize: true} : null;
+export const MAX_IMAGE_SIZE = 16777216;
+
+export function isImageTooLarge(file: File | null): boolean {
+  return !!file && file.size > MAX_IMAGE_SIZE;
 }
 
-export function checkArticleName(
-  store: InstanceType<typeof ArticleStore>,
-  injector: Injector,
-  excludedId?: number,
-): AsyncValidatorFn {
-  return (control: AbstractControl) => {
-    if (control.pristine) {
-      return of(null);
-    }
-    if (!control.value) return of(null);
-
-    // 1. Aktiviraš proveru u store-u
-    store.checkArticleName({name: control.value, excludeId: excludedId});
-
-    // 2. Čekaš da 'isChecking' postane false i vratiš rezultat na osnovu 'isAvailable'
-    return toObservable(store.loadingStatus.checkName, {injector}).pipe(
-      filter((loading) => !loading), // Čekaj da završi
-      take(1),
-      map(() => (store.isAvailable() ? null : {nameTaken: true})),
-    );
-  };
-}
-
-export function articleNoChangesValidator(
+/**
+ * Da li se trenutna vrednost forme razlikuje od početnog artikla (edit mod).
+ */
+export function hasArticleChanges(
   initialArticle: SalesArticle,
+  value: ArticleFormModel,
   initialFile: File | null,
-): ValidatorFn {
-  return (group: AbstractControl): ValidationErrors | null => {
-    const formValue = group.value;
+): boolean {
+  // 1. Provera osnovnih polja
+  const fieldsChanged =
+    value.name !== initialArticle.name ||
+    value.price !== initialArticle.price ||
+    value.active !== initialArticle.active ||
+    value.admissionPrice1 !== initialArticle.admissionPrice1 ||
+    value.admissionPrice2 !== initialArticle.admissionPrice2 ||
+    (value.category || null) !== initialArticle.category;
 
-    // 1. Provera osnovnih polja
-    const fieldsChanged =
-      formValue.name !== initialArticle.name ||
-      formValue.price !== initialArticle.price ||
-      formValue.active !== initialArticle.active ||
-      formValue.admissionPrice1 !== initialArticle.admissionPrice1 ||
-      formValue.admissionPrice2 !== initialArticle.admissionPrice2 ||
-      formValue.category !== initialArticle.category;
+  // 2. Provera slike
+  const imageChanged = value.image !== initialFile;
+  const stocksChanged = hasArrayChanges(
+    initialArticle.stocks || [],
+    value.initialStocks,
+    ['quantity', 'expirationDate', 'batchNumber'],
+  );
+  const compositionChanged = hasArrayChanges(
+    (initialArticle.composition || []).map(c => ({componentId: c.articleId, quantity: c.quantity})),
+    value.components,
+    ['componentId', 'quantity'],
+  );
+  const barcodesChanged = hasStringArrayChanges(initialArticle.barcodes || [], value.barcodes);
 
-    // 2. Provera slike
-    const imageChanged = formValue.image !== initialFile;
-    const stocksChanged = hasArrayChanges(initialArticle.stocks || [], group.get('initialStocks')?.getRawValue() || [], ['quantity', 'expirationDate', 'batchNumber']);
-    const compositionChanged = hasArrayChanges(initialArticle.composition || [], group.get('components')?.getRawValue() || [], ['articleId', 'quantity']);
-    const barcodesChanged = hasStringArrayChanges(initialArticle.barcodes || [], group.get('barcodes')?.getRawValue() || [])
-    // Ako je bilo šta promenjeno, vraćamo null (validno), inače grešku noChanges
-    return (fieldsChanged || imageChanged || stocksChanged || compositionChanged || barcodesChanged) ? null : {noChanges: true};
-  };
+  return fieldsChanged || imageChanged || stocksChanged || compositionChanged || barcodesChanged;
 }
 
 function hasStringArrayChanges(source: string[], destination: string[]): boolean {
   // 1. Ako dužine nisu iste, odmah znamo da ima promene
   if (source.length !== destination.length) return true;
 
-  // 2. Sortiranje (opciono, ali preporučeno)
-  // Ako ti redosled barkodova nije bitan u bazi, sortiraj ih da izbegneš lažne promene
+  // 2. Sortiranje - redosled barkodova nije bitan, pa izbegavamo lažne promene
   const s1 = [...source].sort();
   const s2 = [...destination].sort();
 
@@ -74,11 +53,10 @@ function hasStringArrayChanges(source: string[], destination: string[]): boolean
   return s1.some((val, index) => val !== s2[index]);
 }
 
-
-function hasArrayChanges<T>(
-  source: T[],
-  destination: T[],
-  keys: (keyof T)[] // Ključevi se prosleđuju dinamički u runtime-u
+function hasArrayChanges<K extends string>(
+  source: Partial<Record<K, unknown>>[],
+  destination: Partial<Record<K, unknown>>[],
+  keys: K[],
 ): boolean {
   // Brza provera dužine
   if (source.length !== destination.length) return true;
@@ -97,35 +75,28 @@ function hasArrayChanges<T>(
         return val1.getTime() !== val2.getTime();
       }
 
-      return val1 !== val2;
+      return (val1 ?? null) !== (val2 ?? null);
     });
   });
 }
 
-
-export function uniqueValueValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const formArray = control as FormArray;
-    const values = formArray.controls.map(c => c.value?.trim().toLowerCase());
-
-    // Check if any value is duplicated
-    const hasDuplicates = values.some((val, index) => val && values.indexOf(val) !== index);
-
-    return hasDuplicates ? {duplicateValue: true} : null;
-  };
+export function hasDuplicateValues(values: string[]): boolean {
+  const normalized = values.map(v => v?.trim().toLowerCase());
+  return normalized.some((val, index) => val && normalized.indexOf(val) !== index);
 }
 
-export const eanValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
-  const value = control.value;
-
-  // Ako je prazno, preskačemo (za to služi Validators.required)
+/**
+ * Proverava EAN-8 / EAN-13 barkod. Vraća vrstu greške ili null ako je validan.
+ */
+export function eanError(value: string): 'eanFormat' | 'eanChecksum' | null {
+  // Ako je prazno, preskačemo (za to služi required)
   if (!value) return null;
 
   const code = value.toString();
 
   // 1. Provera formata: samo cifre, dužina tačno 8 ili 13
   if (!/^\d{8}$|^\d{13}$/.test(code)) {
-    return {eanFormat: true};
+    return 'eanFormat';
   }
 
   // 2. Modulo 10 kalkulacija
@@ -145,8 +116,5 @@ export const eanValidator: ValidatorFn = (control: AbstractControl): ValidationE
 
   const calculatedCheck = (10 - (sum % 10)) % 10;
 
-  return calculatedCheck === checkDigit ? null : {eanChecksum: true};
-};
-
-
-
+  return calculatedCheck === checkDigit ? null : 'eanChecksum';
+}

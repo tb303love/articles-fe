@@ -1,16 +1,16 @@
 import {SalesArticle} from '../../core/model';
 
 export type ArticleState = {
-  articles: SalesArticle[];
+  articles: SalesArticle[]; // Rezultat poslednje pretrage na serveru za `searchTerm`
   loadingStatus: {
     list: boolean;
     checkName: boolean;
     saving: boolean;
     writeOff: boolean;
   };
-  filterQuery: string;
   isAvailable: boolean;
   searchTerm: string;
+  totalCount: number | null; // Ukupno artikala na serveru, nezavisno od pretrage (null = još nije učitano)
   editingId: number | null,
 };
 
@@ -27,8 +27,8 @@ export const initialState: ArticleState = {
     saving: false,
     writeOff: false,
   },
-  filterQuery: '',
   isAvailable: false,
   searchTerm: '',
+  totalCount: null,
   editingId: null,
 };

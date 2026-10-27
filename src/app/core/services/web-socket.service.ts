@@ -1,24 +1,23 @@
-// src/app/services/web-socket.service.ts
-import { Injectable } from '@angular/core';
-import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
-import { Observable, Subject, timer } from 'rxjs';
-import { map, retry, filter } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
+import {Service} from '@angular/core';
+import {webSocket, WebSocketSubject} from 'rxjs/webSocket';
+import {Observable, Subject, timer} from 'rxjs';
+import {filter, map, retry} from 'rxjs/operators';
+import {environment} from '../../../environments/environment';
 
-export type WsTopic = 'sales' | 'inventory' | 'new-article' | 'info'| 'connection-mode' | 'adb-progress';
+export type WsTopic = 'sales' | 'inventory' | 'new-article' | 'info' | 'connection-mode' | 'adb-progress';
 
 export interface RustWsPoruka {
    tip: WsTopic;
    podaci: any;
 }
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class WebSocketService {
    private socket$!: WebSocketSubject<any>;
    private poruke$ = new Subject<RustWsPoruka>();
 
    constructor() {
-      this.inicijalizujCistWs();
+      // this.inicijalizujCistWs();
    }
 
    private inicijalizujCistWs() {
