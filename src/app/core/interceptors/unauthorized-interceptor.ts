@@ -2,12 +2,15 @@ import {HttpErrorResponse, HttpInterceptorFn} from '@angular/common/http';
 import {inject} from '@angular/core';
 import {BehaviorSubject, catchError, filter, switchMap, take, throwError} from 'rxjs';
 import {AuthService} from '../services/auth-service';
+import {SnackbarService} from '../services/snackbar-service';
+import {apiErrorMessage} from '../utils/api-error';
 
 let isRefreshing = false;
 const refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
 export const unautorizedInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
+  const snackbar = inject(SnackbarService);
 
   return next(req).pipe(
     catchError((error) => {
@@ -52,6 +55,7 @@ export const unautorizedInterceptor: HttpInterceptorFn = (req, next) => {
 
             // Koristimo javnu metodu koja čisti Signale, LocalStorage i radi ruter navigaciju
             authService.clearSession();
+            snackbar.showApiError(apiErrorMessage(refreshError, 'Prijava je istekla. Prijavite se ponovo.'));
 
             return throwError(() => refreshError);
           }),

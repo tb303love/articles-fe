@@ -81,6 +81,21 @@ mat-form-field {
   }
 }
 
+// --- SNACKBAR BOJE (panelClass) ---
+// Postavljamo i stara (mdc) i nova (mat) imena tokena, rade na obe verzije Material-a
+@mixin snackbar-boja($pozadina) {
+  --mdc-snackbar-container-color: #{$pozadina};
+  --mat-snack-bar-container-color: #{$pozadina};
+  --mdc-snackbar-supporting-text-color: #fff;
+  --mat-snack-bar-supporting-text-color: #fff;
+  --mat-snack-bar-button-color: #fff;
+}
+.mat-mdc-snack-bar-container {
+  &.snackbar-error { @include snackbar-boja(#c62828); }
+  &.snackbar-warning { @include snackbar-boja(#ef6c00); }
+  &.snackbar-success { @include snackbar-boja(#2e7d32); }
+}
+
 // --- LONG PRESS PROGRESS BAR (MATERIAL FIX) ---
 .long-press-btn {
   position: relative !important;

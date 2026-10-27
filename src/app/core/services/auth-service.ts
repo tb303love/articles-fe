@@ -1,10 +1,11 @@
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpContext} from '@angular/common/http';
 import {computed, inject, Injectable, Signal, signal} from '@angular/core';
 import {Router} from '@angular/router';
 import {finalize, Observable} from 'rxjs';
 import {tap} from 'rxjs/operators';
 import {environment} from '../../../environments/environment';
 import {AuthResponse} from '../model';
+import {SILENT_ERROR} from '../utils/api-error';
 
 @Injectable({providedIn: 'root'})
 export class AuthService {
@@ -47,7 +48,10 @@ export class AuthService {
 
     // 3. LOGIN - Pokreće promenu signala
     login(credentials: any): Observable<AuthResponse> {
-        return this.http.post<AuthResponse>(`${this.API_URL}/login`, credentials).pipe(
+        // Login formu sama prikazuje grešku (ispod polja), bez dodatnog snackbar-a
+        return this.http.post<AuthResponse>(`${this.API_URL}/login`, credentials, {
+            context: new HttpContext().set(SILENT_ERROR, true),
+        }).pipe(
             tap((res) => {
                 this.saveTokens(res.accessToken, res.refreshToken);
                 // Postavljanjem signala, ceo UI koji zavisi od isAuthenticated() se trenutno osvežava

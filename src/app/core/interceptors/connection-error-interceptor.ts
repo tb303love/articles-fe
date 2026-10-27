@@ -2,7 +2,12 @@ import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, retry, throwError, timer } from 'rxjs';
 import { SnackbarService } from '../services/snackbar-service';
+import { apiErrorMessage, SILENT_ERROR } from '../utils/api-error';
 
+/**
+ * Generička obrada grešaka: mrežni problemi + poruka sa servera (`{ "message" }`).
+ * Zahtevi koji sami prikazuju grešku šalju SILENT_ERROR u HttpContext-u.
+ */
 export const connectionErrorInterceptor: HttpInterceptorFn = (req, next) => {
   const snackbar = inject(SnackbarService);
 
@@ -23,15 +28,13 @@ export const connectionErrorInterceptor: HttpInterceptorFn = (req, next) => {
       const isServerDown = error.status === 0 || isProxyError;
 
       if (isNoInternet) {
-        snackbar.openSnackBar('Nema internet veze', 'Proverite vašu mrežu.');
+        snackbar.showApiError('Nema internet veze. Proverite vašu mrežu.');
+      } else if (isServerDown) {
+        snackbar.showApiError('Server nedostupan. Pokušajte ponovo za nekoliko trenutaka.');
       }
-      else if (isServerDown) {
-        snackbar.openSnackBar('Server nedostupan', 'Naš servis trenutno nije u funkciji. Pokušajte kasnije.');
-      }
-      // Reakcija na duple bar kodove / dupli naziv iz Spring Boot-a
-      else if (error.status === 409) {
-        const backendMessage = error.error?.message || 'Podaci već postoje u bazi.';
-        snackbar.openSnackBar('Konflikt', backendMessage);
+      // 401 rešava unautorizedInterceptor (osvežavanje tokena ili odjava) - ovde bi stigao pre njega
+      else if (error.status !== 401 && !req.context.get(SILENT_ERROR)) {
+        snackbar.showApiError(apiErrorMessage(error));
       }
 
       return throwError(() => error);

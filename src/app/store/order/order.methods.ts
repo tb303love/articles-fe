@@ -59,11 +59,8 @@ export function withOrderMethods() {
                 stockSync.notifyStockChanges();
                 snackBar.open('Porudžbina uspešno kreirana!', 'OK', { duration: 3000 });
               },
-              error: (err) => {
-                console.error('Greška:', err);
-                snackBar.open('Greška pri kreiranju porudžbine', 'Zatvori');
-                patchState(state, { isLoading: false });
-              },
+              // Poruku sa servera (npr. "Nedovoljno zalihe za ...") prikazuje connectionErrorInterceptor
+              error: () => patchState(state, { isLoading: false }),
             });
         },
 
@@ -105,10 +102,8 @@ export function withOrderMethods() {
               next: ([orders, revenue]) => {
                 patchState(state, { orders, totalDailySales: revenue });
               },
-              error: (err) => {
-                console.error('Greška pri ažuriranju tipa:', err);
-                snackBar.open('Greška pri promeni tipa porudžbine', 'Zatvori');
-              },
+              // Poruku sa servera prikazuje connectionErrorInterceptor
+              error: (err) => console.error('Greška pri ažuriranju tipa:', err),
             });
         },
 
@@ -150,12 +145,8 @@ export function withOrderMethods() {
                 refundSuccessSubject.next();
                 snackBar.open('Račun uspešno storniran!', 'OK', { duration: 3000 });
               },
-              error: (err) => {
-                // Prikazujemo poruku o grešci direktno sa backenda (npr. "Već stornirano")
-                const msg = err.error?.message || 'Greška pri storniranju računa!';
-                snackBar.open(msg, 'Zatvori', { duration: 5000 });
-                patchState(state, { isLoading: false });
-              },
+              // Poruku sa servera (npr. "Već stornirano") prikazuje connectionErrorInterceptor
+              error: () => patchState(state, { isLoading: false }),
             });
         },
       }),

@@ -22,4 +22,14 @@ export class SnackbarService {
       verticalPosition: 'top',
     })
   }
+
+  /** Poruka greške sa servera - duže na ekranu da kasir stigne da je pročita */
+  showApiError(message: string) {
+    this.snackBar.open(message, 'Zatvori', {
+      duration: 6000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom',
+      panelClass: ['snackbar-error'],
+    });
+  }
 }

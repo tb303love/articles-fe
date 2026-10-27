@@ -9,6 +9,7 @@ import { Router } from '@angular/router';
 import { exhaustMap } from 'rxjs';
 import { ArticlesApiService } from '../core/services/articles-api-service';
 import { AuthService } from '../core/services/auth-service';
+import { apiErrorMessage } from '../core/utils/api-error';
 
 @Component({
   selector: 'app-login',
@@ -51,9 +52,9 @@ export class Login {
           ),
         )
         .subscribe({
+          // Server šalje tačan razlog (401 pogrešni podaci, 500 problem na serveru...)
           error: (err) => {
-            this.errorMessage = 'Neispravno korisničko ime ili lozinka.';
-            console.error(err);
+            this.errorMessage = apiErrorMessage(err);
           },
         });
     }
